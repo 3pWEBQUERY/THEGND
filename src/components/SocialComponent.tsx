@@ -2,8 +2,36 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 import { Search, Users, UserPlus, UserMinus, Heart, MessageCircle, ChevronDown } from 'lucide-react'
 import { getUserTypeDisplayName } from '@/lib/validations'
+
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
+}
+
+function getProfileHref(user: { id: string; email: string; userType: string; profile?: { displayName?: string } }): string {
+  const name = user.profile?.displayName || user.email.split('@')[0] || 'profil'
+  const slug = slugify(name)
+  switch (user.userType) {
+    case 'ESCORT':
+    case 'HOBBYHURE':
+      return `/escorts/${user.id}/${slug}`
+    case 'AGENCY':
+      return `/agency/${user.id}/${slug}`
+    case 'CLUB':
+    case 'STUDIO':
+      return `/club-studio/${user.id}/${slug}`
+    case 'MEMBER':
+    default:
+      return `/members/${user.id}/${slug}`
+  }
+}
 
 interface User {
   id: string
@@ -192,8 +220,8 @@ export default function SocialComponent() {
   const UserCard = ({ user, showFollowButton = true }: { user: User, showFollowButton?: boolean }) => (
     <div className="bg-white border border-gray-100 p-4 sm:p-6 hover:border-pink-200 transition-colors">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start sm:items-center space-x-3">
-          <div className="h-12 w-12 bg-gray-100 flex items-center justify-center">
+        <Link href={getProfileHref(user)} className="flex items-start sm:items-center space-x-3 flex-1 min-w-0">
+          <div className="h-12 w-12 bg-gray-100 flex items-center justify-center flex-shrink-0">
             {user.profile?.avatar ? (
               <img 
                 src={user.profile.avatar} 
@@ -207,7 +235,7 @@ export default function SocialComponent() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-light tracking-wide text-gray-800 truncate">
+            <div className="text-sm font-light tracking-wide text-gray-800 truncate hover:text-pink-500 transition-colors">
               {user.profile?.displayName || user.email}
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
@@ -226,7 +254,7 @@ export default function SocialComponent() {
               </p>
             )}
           </div>
-        </div>
+        </Link>
         
         {showFollowButton && user.id !== session?.user?.id && (
           <div className="mt-4 sm:mt-0 w-full sm:w-auto flex items-center">

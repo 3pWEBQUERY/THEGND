@@ -44,6 +44,7 @@ export default function DashboardHeader({ session, activeTab, setActiveTab }: Da
   const [countryBlockEnabled, setCountryBlockEnabled] = useState(false)
   const [seoEnabled, setSeoEnabled] = useState(false)
   const [seoAvailable, setSeoAvailable] = useState(false)
+  const [hasMembership, setHasMembership] = useState(false)
 
   const handleSignOut = () => {
     const origin = typeof window !== 'undefined' ? window.location.origin : '/'
@@ -103,6 +104,19 @@ export default function DashboardHeader({ session, activeTab, setActiveTab }: Da
 
   const userType = (session?.user?.userType as UserType) ?? 'MEMBER'
   const canStories = canCreateStories(userType)
+
+  // Check if MEMBER has an active membership (for blog tab gating)
+  useEffect(() => {
+    if (userType !== 'MEMBER') return
+    fetch('/api/membership/my')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.memberships?.some((m: any) => m.status === 'ACTIVE')) {
+          setHasMembership(true)
+        }
+      })
+      .catch(() => {})
+  }, [userType])
 
   const loadNotifications = async (reset = false) => {
     try {
@@ -418,15 +432,17 @@ export default function DashboardHeader({ session, activeTab, setActiveTab }: Da
                 FORUM
                 <span className={`absolute -bottom-1 left-0 h-0.5 bg-pink-500 transition-all duration-300 ${activeTab === 'forum' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </Link>
-              <Link 
-                href="/dashboard?tab=blog"
-                className={`relative group text-sm font-light tracking-widest uppercase transition-colors ${
-                  activeTab === 'blog' ? 'text-pink-500' : 'text-gray-600 hover:text-pink-500'
-                }`}
-              >
-                BLOG
-                <span className={`absolute -bottom-1 left-0 h-0.5 bg-pink-500 transition-all duration-300 ${activeTab === 'blog' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
-              </Link>
+              {(userType !== 'MEMBER' || hasMembership) && (
+                <Link 
+                  href="/dashboard?tab=blog"
+                  className={`relative group text-sm font-light tracking-widest uppercase transition-colors ${
+                    activeTab === 'blog' ? 'text-pink-500' : 'text-gray-600 hover:text-pink-500'
+                  }`}
+                >
+                  BLOG
+                  <span className={`absolute -bottom-1 left-0 h-0.5 bg-pink-500 transition-all duration-300 ${activeTab === 'blog' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                </Link>
+              )}
               {(userType === 'AGENCY' || userType === 'CLUB' || userType === 'STUDIO') && (
                 <Link 
                   href="/dashboard?tab=jobs"
@@ -596,15 +612,19 @@ export default function DashboardHeader({ session, activeTab, setActiveTab }: Da
                     <Link href="/notifications" className="block px-4 py-2 text-sm font-light tracking-widest text-gray-700 hover:bg-pink-50 hover:text-pink-600">
                       BENACHRICHTIGUNGEN
                     </Link>
-                    <Link href="/verify" className="block px-4 py-2 text-sm font-light tracking-widest text-gray-700 hover:bg-pink-50 hover:text-pink-600">
-                      VERIFIZIEREN
-                    </Link>
+                    {userType !== 'MEMBER' && (
+                      <Link href="/verify" className="block px-4 py-2 text-sm font-light tracking-widest text-gray-700 hover:bg-pink-50 hover:text-pink-600">
+                        VERIFIZIEREN
+                      </Link>
+                    )}
                     <Link href="/membership" className="block px-4 py-2 text-sm font-light tracking-widest text-gray-700 hover:bg-pink-50 hover:text-pink-600">
                       MITGLIEDSCHAFT
                     </Link>
-                    <Link href="/marketing" className="block px-4 py-2 text-sm font-light tracking-widest text-gray-700 hover:bg-pink-50 hover:text-pink-600">
-                      MARKETING
-                    </Link>
+                    {userType !== 'MEMBER' && (
+                      <Link href="/marketing" className="block px-4 py-2 text-sm font-light tracking-widest text-gray-700 hover:bg-pink-50 hover:text-pink-600">
+                        MARKETING
+                      </Link>
+                    )}
                     <Link href="/addons" className="block px-4 py-2 text-sm font-light tracking-widest text-gray-700 hover:bg-pink-50 hover:text-pink-600">
                       ADD-ONS
                     </Link>

@@ -36,7 +36,37 @@ import DatesPanel from '@/components/dates/DatesPanel'
 import DatesCalendarWidget from '@/components/dates/DatesCalendarWidget'
 import NewestEscortsSlider from '@/components/dashboard/NewestEscortsSlider'
 
- 
+/** Blog tab gated behind active membership for MEMBER users */
+function BlogTabGated({ session }: { session: any }) {
+  const [allowed, setAllowed] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    const userType = (session?.user as any)?.userType
+    if (userType !== 'MEMBER') {
+      setAllowed(true)
+      return
+    }
+    fetch('/api/membership/my')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        setAllowed(data?.memberships?.some((m: any) => m.status === 'ACTIVE') ?? false)
+      })
+      .catch(() => setAllowed(false))
+  }, [session])
+
+  if (allowed === null) {
+    return <div className="flex justify-center py-16 text-gray-400 text-sm tracking-widest">Lade…</div>
+  }
+  if (!allowed) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4">
+        <p className="text-gray-500 text-sm tracking-widest uppercase">Blog ist nur mit aktiver Mitgliedschaft verfügbar.</p>
+        <a href="/membership" className="text-pink-500 hover:text-pink-600 text-sm tracking-widest uppercase underline">Mitgliedschaft abschließen</a>
+      </div>
+    )
+  }
+  return <BlogDashboard />
+}
 
 export default function DashboardClient() {
   const { data: session, status } = useSession()
@@ -410,7 +440,7 @@ export default function DashboardClient() {
             <ForumDashboard />
           )}
           {activeTab === 'blog' && (
-            <BlogDashboard />
+            <BlogTabGated session={session} />
           )}
           {activeTab === 'dates' && (
             <DatesPanel />

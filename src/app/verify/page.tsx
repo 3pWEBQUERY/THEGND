@@ -94,12 +94,16 @@ export default function VerifyPage() {
   const isEscort = (session?.user as any)?.userType === 'ESCORT'
 
   // Auth guard: redirect unauthenticated users to sign-in
+  // MEMBER users cannot access the verify page
   useEffect(() => {
     if (status === 'unauthenticated') {
       const cb = encodeURIComponent('/verify')
       router.replace(`/auth/signin?callbackUrl=${cb}`)
     }
-  }, [status, router])
+    if (status === 'authenticated' && (session?.user as any)?.userType === 'MEMBER') {
+      router.replace('/dashboard')
+    }
+  }, [status, session, router])
 
   // Basic details
   const [firstName, setFirstName] = useState('')

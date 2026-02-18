@@ -10,6 +10,14 @@ type Props = {
 export default function ProfileAboutTab({ profile, userType }: Props) {
   const [showFullDesc, setShowFullDesc] = useState(false)
 
+  if (!profile) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-sm font-light tracking-wide text-gray-500">Noch keine Profilinformationen vorhanden.</p>
+      </div>
+    )
+  }
+
   // Helpers (duplicated locally to keep this component self-contained)
   const toStr = (v: any) => (v === null || v === undefined) ? '' : String(v).trim()
   const withUnit = (v: any, unit: string) => {

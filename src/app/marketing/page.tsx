@@ -18,12 +18,16 @@ export default function MarketingPage() {
   type Duration = 7 | 14 | 30
 
   // Auth guard: redirect unauthenticated users to sign-in
+  // MEMBER users cannot access the marketing page
   useEffect(() => {
     if (status === 'unauthenticated') {
       const cb = encodeURIComponent('/marketing')
       router.replace(`/auth/signin?callbackUrl=${cb}`)
     }
-  }, [status, router])
+    if (status === 'authenticated' && (session?.user as any)?.userType === 'MEMBER') {
+      router.replace('/dashboard')
+    }
+  }, [status, session, router])
 
   const PRICES: Record<PlacementKey, Record<Duration, number>> = {
     home_top: { 7: 119.99, 14: 199.99, 30: 349.99 },

@@ -2,10 +2,10 @@
  * Shared Gemini Flash helper.
  * Uses the Google Generative Language REST API (v1beta) with an API-key.
  *
- * Model: gemini-2.0-flash  (fast, cost-efficient)
+ * Model: gemini-3-flash-preview  (fast, cost-efficient)
  */
 
-const GEMINI_MODEL = 'gemini-2.0-flash'
+const GEMINI_MODEL = 'gemini-3-flash-preview'
 
 export interface GeminiOptions {
   /** System instruction (optional – maps to systemInstruction). */
