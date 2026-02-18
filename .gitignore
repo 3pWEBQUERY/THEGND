@@ -1,0 +1,44 @@
+# OS
+.DS_Store
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Next.js
+.next/
+out/
+.vercel/
+.turbo/
+
+# Build/coverage
+build/
+dist/
+coverage/
+
+# TypeScript
+tsconfig.tsbuildinfo
+
+# IDE/editor
+.idea/
+.vscode/
+.eslintcache
+
+# Prisma
+prisma/*.db
+
+# Misc
+*.log
+*.lock
+
+# Uploads (uncomment if you don't want to commit user uploads)
+# public/uploads/

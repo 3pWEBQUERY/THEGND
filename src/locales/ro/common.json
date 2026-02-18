@@ -1,0 +1,17 @@
+{
+  "app": { "name": "THEGND" },
+  "nav": {
+    "agb": "TERMENI",
+    "privacy": "CONFIDENȚIALITATE",
+    "imprint": "IMPRESSUM"
+  },
+  "legal": {
+    "header": "Informații legale",
+    "imprint": { "title": "IMPRESSUM" },
+    "privacy": { "title": "CONFIDENȚIALITATE" },
+    "terms": { "title": "TERMENI" }
+  },
+  "footer": {
+    "tagline": "Găsește-ți Girls Next Door pe THEGND."
+  }
+}

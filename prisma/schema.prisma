@@ -1,0 +1,1259 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Job categories available for posting
+enum JobCategory {
+  ESCORT
+  CLEANING
+  SECURITY
+  HOUSEKEEPING
+}
+
+// Rental categories available for posting
+enum RentalCategory {
+  APARTMENT
+  ROOM
+  STUDIO
+  EVENT_SPACE
+}
+
+// Jobs posted by Agencies, Clubs, and Studios
+model Job {
+  id            String      @id @default(cuid())
+  title         String
+  shortDesc     String      // short description
+  description   String      // full description
+  category      JobCategory
+  location      String?
+  city          String?
+  country       String?
+  salaryInfo    String?     // free text
+  contactInfo   String?     // email/phone/url
+  media         String?     // JSON array of media URLs
+  isActive      Boolean     @default(true)
+  postedById    String
+  postedBy      User        @relation(fields: [postedById], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([category, createdAt])
+  @@index([postedById, createdAt])
+  @@map("jobs")
+}
+
+// Rentals posted by Agencies, Clubs, and Studios
+model Rental {
+  id            String          @id @default(cuid())
+  title         String
+  shortDesc     String
+  description   String
+  category      RentalCategory
+  location      String?
+  city          String?
+  country       String?
+  priceInfo     String?
+  contactInfo   String?
+  media         String?
+  isActive      Boolean         @default(true)
+  postedById    String
+  postedBy      User            @relation(fields: [postedById], references: [id], onDelete: Cascade)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([category, createdAt])
+  @@index([postedById, createdAt])
+  @@map("rentals")
+}
+
+// Feed Groups (user-created discussion groups similar to Facebook)
+
+enum GroupPrivacy {
+  PUBLIC
+  PRIVATE
+}
+
+enum GroupRole {
+  ADMIN
+  MEMBER
+}
+
+model FeedGroup {
+  id          String       @id @default(cuid())
+  name        String
+  slug        String       @unique
+  description String?
+  cover       String?
+  privacy     GroupPrivacy @default(PUBLIC)
+  ownerId     String
+  owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  members     FeedGroupMember[]
+  posts       Post[]
+
+  @@index([ownerId])
+  @@map("feed_groups")
+}
+
+model FeedGroupMember {
+  id        String     @id @default(cuid())
+  groupId   String
+  userId    String
+  role      GroupRole  @default(MEMBER)
+  createdAt DateTime   @default(now())
+
+  group     FeedGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@map("feed_group_members")
+}
+
+enum MarketingAssetStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model VerificationRequest {
+  id             String             @id @default(dbgenerated("gen_random_uuid()"))
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName      String
+  lastName       String
+  birthDate      DateTime
+  idNumber       String
+  idPhotoUrl     String
+  selfiePhotoUrl String
+  idVideoUrl     String?
+  status         VerificationStatus @default(PENDING)
+  note           String?
+  reviewedAt     DateTime?
+  reviewedById   String?
+  reviewedBy     User?              @relation("VerificationReviewedBy", fields: [reviewedById], references: [id])
+  createdAt      DateTime           @default(now())
+
+  @@map("verification_requests")
+  @@index([userId, status])
+}
+
+// Verification
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Types Enum
+enum UserType {
+  MEMBER
+  ESCORT
+  HOBBYHURE
+  AGENCY
+  CLUB
+  STUDIO
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+  OTHER
+}
+
+enum OnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+// Privacy & Notifications Enums
+enum ProfileVisibility {
+  PUBLIC
+  VERIFIED
+  PRIVATE
+}
+
+enum NotificationPreference {
+  ALL
+  IMPORTANT
+  NONE
+}
+
+// Profile View selection for Escorts
+enum ProfileView {
+  STANDARD
+  ALT1
+  ALT2
+  FULL_SIDE
+}
+
+// Membership & Add-ons
+enum MembershipPlanKey {
+  BASIS
+  PLUS
+  PREMIUM
+  @@map("membership_plan_key")
+}
+
+enum AddonKey {
+  ESCORT_OF_DAY
+  ESCORT_OF_WEEK
+  ESCORT_OF_MONTH
+  CITY_BOOST
+  PROFILE_ANALYTICS
+  COUNTRY_BLOCK
+  SEO
+  @@map("addon_key")
+}
+
+enum MembershipStatus {
+  ACTIVE
+  CANCELED
+  PAUSED
+  EXPIRED
+  @@map("membership_status")
+}
+
+enum BookingStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELED
+  @@map("booking_status")
+}
+
+// User Authentication Model
+model User {
+  id                String            @id @default(cuid())
+  email             String            @unique
+  password          String
+  userType          UserType
+  onboardingStatus  OnboardingStatus  @default(NOT_STARTED)
+  isActive          Boolean           @default(true)
+  isModerator       Boolean           @default(false)
+  // Presence tracking
+  lastSeenAt        DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  profile           Profile?
+  posts             Post[]
+  stories           Story[]
+  storyViews        StoryView[]
+  comments          Comment[]        @relation("CommentAuthor")
+  receivedComments  Comment[]        @relation("CommentTargetUser")
+  sentMessages      Message[]         @relation("SentMessages")
+  receivedMessages  Message[]         @relation("ReceivedMessages")
+  following         Follow[]          @relation("Follower")
+  followers         Follow[]          @relation("Following")
+  likes             Like[]
+  notifications     Notification[]
+  billingCustomers  BillingCustomer[]
+  verificationRequests VerificationRequest[]
+  reviewedVerifications VerificationRequest[] @relation("VerificationReviewedBy")
+
+  // Membership relations
+  memberships       UserMembership[]
+  addonBookings     UserAddonBooking[]
+  addonStates       UserAddonState[]
+
+  // Marketing orders
+  marketingOrders   MarketingOrder[]
+
+  // Forum relations
+  forumThreads      ForumThread[]
+  forumPosts        ForumPost[]
+  threadSubscriptions ThreadSubscription[]
+  postReports       ForumPostReport[] @relation("ReportReporter")
+
+  // Blog posts authored by the user (internal blog)
+  blogPosts         BlogPost[]
+
+  // Feedback submitted by the user
+  feedbacks         Feedback[]
+
+  // Feed groups
+  feedGroupsOwned   FeedGroup[]
+  feedGroupMemberships FeedGroupMember[]
+
+  // Gamification
+  gamificationProfile GamificationProfile?
+  gamificationEvents  GamificationEvent[]
+  userBadges          UserBadge[]
+  userPerks           UserPerk[]
+
+  // Matching
+  matchActionsMade     MemberMatchAction[] @relation("MemberMatchMember")
+  matchActionsReceived MemberMatchAction[] @relation("MemberMatchEscort")
+
+  // Dates (reconciled)
+  dateRequestsAsEscort DateRequest[]      @relation("DateEscort")
+  dateRequestsAsMember DateRequest[]      @relation("DateMember")
+
+  // Profile visitors
+  profileVisitsReceived ProfileVisit[] @relation("ProfileVisits")
+  profileVisitsMade     ProfileVisit[] @relation("Visitor")
+
+  // Profile analytics relations
+  analyticsEventsAsTarget  ProfileAnalyticsEvent[] @relation("ProfileAnalyticsTarget")
+  analyticsEventsAsVisitor ProfileAnalyticsEvent[] @relation("ProfileAnalyticsVisitor")
+
+  // Jobs posted by this user (AGENCY/CLUB/STUDIO only)
+  jobsPosted        Job[]
+  // Rentals posted by this user (AGENCY/CLUB/STUDIO only)
+  rentalsPosted     Rental[]
+
+  // Review tickets relations
+  reviewTicketsTarget   ReviewTicket[] @relation("TicketTargetUser")
+  reviewTicketsIssued   ReviewTicket[] @relation("TicketIssuedBy")
+  reviewTicketsRedeemed ReviewTicket[] @relation("TicketRedeemedBy")
+
+  // Auth: password reset tokens
+  passwordResetTokens  PasswordResetToken[]
+
+  @@map("users")
+}
+
+// Track who visited whose profile
+model ProfileVisit {
+  id             String   @id @default(cuid())
+  profileUserId  String
+  visitorId      String?
+  profileUser    User     @relation("ProfileVisits", fields: [profileUserId], references: [id], onDelete: Cascade)
+  visitor        User?    @relation("Visitor", fields: [visitorId], references: [id], onDelete: SetNull)
+  visitedAt      DateTime @default(now())
+
+  @@index([profileUserId, visitedAt])
+  @@index([visitorId, visitedAt])
+  @@map("profile_visits")
+}
+
+model PasswordResetToken {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique @map("token_hash")
+  expiresAt  DateTime @map("expires_at")
+  usedAt     DateTime? @map("used_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId, expiresAt])
+  @@map("password_reset_tokens")
+}
+
+// Reconcile existing DB structures for Date Requests (Option C)
+enum DateRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELED
+  @@map("date_request_status")
+}
+
+model DateRequest {
+  id               String             @id
+  escortId         String             @map("escort_id")
+  memberId         String             @map("member_id")
+  startsAt         DateTime           @map("starts_at")
+  endsAt           DateTime           @map("ends_at")
+  durationMinutes  Int?               @map("duration_minutes")
+  priceCents       Int?               @map("price_cents")
+  currency         String?
+  extras           Json?
+  placeKey         String?            @map("place_key")
+  placeLabel       String?            @map("place_label")
+  outfitKey        String?            @map("outfit_key")
+  outfitLabel      String?            @map("outfit_label")
+  city             String?
+  location         String?
+  lat              Float?
+  lng              Float?
+  placeId          String?            @map("place_id")
+  note             String?
+  status           DateRequestStatus  @default(PENDING)
+  createdAt        DateTime?          @default(now()) @map("created_at")
+
+  // Relations
+  escort           User               @relation("DateEscort", fields: [escortId], references: [id], onDelete: Cascade)
+  member           User               @relation("DateMember", fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([escortId, status, startsAt], map: "idx_date_requests_escort")
+  @@index([memberId, status, startsAt], map: "idx_date_requests_member")
+  @@map("date_requests")
+}
+
+// Profile Model with different fields based on UserType
+model Profile {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Common fields
+  displayName String?
+  bio         String?
+  avatar      String?
+  location    String?
+  
+  // Member specific fields
+  age         Int?
+  gender      Gender?
+  preferences String?   // JSON string for member preferences
+  
+  // Escort specific fields
+  slogan      String?
+  nationality String?
+  languages   String?   // JSON array of languages
+  
+  // Appearance fields (Escort)
+  height      String?
+  weight      String?
+  bodyType    String?
+  hairColor   String?
+  eyeColor    String?
+  // Extended appearance (Escort, step-2)
+  hairLength   String?
+  breastType   String?
+  breastSize   String?
+  intimateArea String?
+  piercings    String?   // JSON array of strings
+  tattoos      String?   // JSON array of strings
+  clothingStyle String?
+  clothingSize String?
+  shoeSize     String?
+  
+  // Description (Escort)
+  description String?
+  services    String?   // JSON array of services
+  
+  // Gallery (Escort)
+  gallery     String?   // JSON array of image URLs
+  media       String?   // JSON array of media objects (images/videos)
+  
+  // Location details (Escort/Agency/Club/Studio)
+  address     String?
+  city        String?
+  country     String?
+  zipCode     String?
+  
+  // Privacy & Notifications
+  visibility             ProfileVisibility       @default(PUBLIC)
+  notificationPreference NotificationPreference  @default(ALL)
+  profileView            ProfileView             @default(STANDARD)
+  
+  // Structured geolocation fields
+  latitude    Float?
+  longitude   Float?
+  locationPlaceId   String?
+  locationFormatted String?
+  
+  // Contact information
+  phone       String?
+  website     String?
+  socialMedia String?   // JSON object with social media links
+  openingHours String?  // JSON object with weekly opening hours
+  
+  // Agency/Club/Studio specific
+  companyName String?
+  businessType String?
+  established DateTime?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("profiles")
+  @@index([latitude, longitude])
+}
+
+// Posts Model
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  images    String?  // JSON array of image URLs
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  // Optional group association for posts inside user-created groups
+  groupId   String?
+  group     FeedGroup? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  likes     Like[]
+  comments  Comment[]
+
+  @@map("posts")
+}
+
+// Stories Model (only for non-Member users)
+model Story {
+  id        String   @id @default(cuid())
+  content   String
+  image     String?  // Single image URL
+  video     String?  // Video URL
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  expiresAt DateTime // Stories expire after 24 hours
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  
+  views     StoryView[]
+
+  @@map("stories")
+}
+
+model StoryView {
+  id      String @id @default(cuid())
+  storyId String
+  userId  String
+  story   Story  @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  viewedAt DateTime @default(now())
+
+  @@unique([storyId, userId])
+  @@map("story_views")
+}
+
+// Comments Model
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  // Comment can target either a Post or a User (profile)
+  postId    String?
+  post      Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  targetUserId String?
+  targetUser   User?   @relation("CommentTargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+  // Author of the comment
+  authorId  String
+  author    User     @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  // Optional rating 1-5
+  rating    Int?
+  // Verified review via physical ticket
+  verifiedByTicket Boolean @default(false)
+  reviewTicketId   String?
+  reviewTicket     ReviewTicket? @relation(fields: [reviewTicketId], references: [id], onDelete: SetNull)
+  // Threaded replies
+  parentId  String?
+  parent    Comment? @relation("CommentToReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Comment[] @relation("CommentToReplies")
+  // Moderation & visibility
+  isVisible         Boolean  @default(true)
+  hiddenByOwner     Boolean  @default(false)
+  deletionRequested Boolean  @default(false)
+  deletionRequestMessage String?
+  editRequested     Boolean  @default(false)
+  editRequestMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("comments")
+  @@index([postId, parentId])
+  @@index([targetUserId])
+}
+
+// Physical review ticket that an ESCORT can generate and hand to a MEMBER
+model ReviewTicket {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  targetUserId  String
+  targetUser    User     @relation("TicketTargetUser", fields: [targetUserId], references: [id], onDelete: Cascade)
+  issuedById    String
+  issuedBy      User     @relation("TicketIssuedBy", fields: [issuedById], references: [id], onDelete: Cascade)
+  redeemedById  String?
+  redeemedBy    User?    @relation("TicketRedeemedBy", fields: [redeemedById], references: [id], onDelete: SetNull)
+  redeemedAt    DateTime?
+  expiresAt     DateTime?
+  maxUses       Int      @default(1)
+  usedCount     Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  // Back relation to comments created via this ticket
+  comments      Comment[]
+
+  @@index([targetUserId])
+  @@index([issuedById])
+  @@index([redeemedById])
+  @@map("review_tickets")
+}
+
+// Messages Model
+model Message {
+  id         String   @id @default(cuid())
+  content    String
+  senderId   String
+  receiverId String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@map("messages")
+}
+
+// Follow Model
+model Follow {
+  id          String @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User   @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User   @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+// Likes Model
+model Like {
+  id     String @id @default(cuid())
+  userId String
+  postId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@map("likes")
+}
+
+// Notifications Model
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // "follow", "like", "comment", "message"
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+// Billing Enums
+enum BillingProvider {
+  STRIPE
+  PADDLE
+  LEMONSQUEEZY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+  UNPAID
+}
+
+// Billing Models
+model BillingCustomer {
+  id                   String           @id @default(cuid())
+  userId               String
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider             BillingProvider
+  providerCustomerId   String
+  defaultPaymentMethodId String?        @unique
+  defaultPaymentMethod  PaymentMethod?  @relation("DefaultPaymentMethodOnCustomer", fields: [defaultPaymentMethodId], references: [id])
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  // Relations
+  paymentMethods       PaymentMethod[] @relation("CustomerPaymentMethods")
+  subscriptions        Subscription[]
+  invoices             Invoice[]
+
+  @@unique([userId, provider])
+  @@unique([provider, providerCustomerId])
+  @@map("billing_customers")
+}
+
+model PaymentMethod {
+  id                      String          @id @default(cuid())
+  billingCustomerId       String
+  billingCustomer         BillingCustomer @relation("CustomerPaymentMethods", fields: [billingCustomerId], references: [id], onDelete: Cascade)
+  providerPaymentMethodId String
+  brand                   String
+  last4                   String
+  expMonth                Int
+  expYear                 Int
+  isDefault               Boolean         @default(false)
+  createdAt               DateTime        @default(now())
+  // Back relation for the customer's default payment method
+  defaultForCustomer      BillingCustomer? @relation("DefaultPaymentMethodOnCustomer")
+
+  @@unique([billingCustomerId, providerPaymentMethodId])
+  @@map("billing_payment_methods")
+}
+
+model Subscription {
+  id                     String           @id @default(cuid())
+  billingCustomerId      String
+  billingCustomer        BillingCustomer  @relation(fields: [billingCustomerId], references: [id], onDelete: Cascade)
+  providerSubscriptionId String
+  status                 SubscriptionStatus
+  planName               String?
+  priceId                String?
+  amount                 Int?
+  currency               String?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAt               DateTime?
+  cancelAtPeriodEnd      Boolean?         @default(false)
+  endedAt                DateTime?
+  trialStart             DateTime?
+  trialEnd               DateTime?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  // Relations
+  invoices               Invoice[]
+
+  @@unique([providerSubscriptionId])
+  @@map("billing_subscriptions")
+}
+
+model Invoice {
+  id                 String           @id @default(cuid())
+  billingCustomerId  String
+  billingCustomer    BillingCustomer  @relation(fields: [billingCustomerId], references: [id], onDelete: Cascade)
+  subscriptionId     String?
+  subscription       Subscription?    @relation(fields: [subscriptionId], references: [id])
+  providerInvoiceId  String
+  amount             Int
+  currency           String
+  status             String
+  hostedInvoiceUrl   String?
+  pdf                String?
+  issuedAt           DateTime
+  paidAt             DateTime?
+  createdAt          DateTime        @default(now())
+
+  @@index([subscriptionId])
+  @@unique([providerInvoiceId])
+  @@map("billing_invoices")
+}
+
+// Admin-configured membership plans
+model MembershipPlan {
+  id          String            @id @default(cuid())
+  key         MembershipPlanKey @unique
+  name        String
+  description String?
+  priceCents  Int               // price per month in cents
+  active      Boolean           @default(true)
+  features    String?           // JSON array of strings
+  sortOrder   Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  userMemberships UserMembership[]
+
+  @@map("membership_plans")
+}
+
+// Admin-configured add-ons (container)
+model Addon {
+  id          String   @id @default(cuid())
+  key         AddonKey @unique
+  name        String
+  description String?
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  options     AddonOption[]
+
+  @@map("addons")
+}
+
+// Specific purchasable options for an addon (duration & price)
+model AddonOption {
+  id           String   @id @default(cuid())
+  addonId      String
+  addon        Addon    @relation(fields: [addonId], references: [id], onDelete: Cascade)
+  durationDays Int
+  priceCents   Int
+  active       Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  bookings     UserAddonBooking[]
+
+  @@unique([addonId, durationDays])
+  @@map("addon_options")
+}
+
+// A user's current or historical membership
+model UserMembership {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId      String
+  plan        MembershipPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+  status      MembershipStatus @default(ACTIVE)
+  startedAt   DateTime         @default(now())
+  endedAt     DateTime?
+  cancelAt    DateTime?
+  note        String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([userId, status])
+  @@map("user_memberships")
+}
+
+// Booked add-on instances per user
+model UserAddonBooking {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addonOptionId String
+  addonOption   AddonOption   @relation(fields: [addonOptionId], references: [id], onDelete: Restrict)
+  status        BookingStatus @default(PENDING)
+  startsAt      DateTime
+  endsAt        DateTime
+  note          String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId, status])
+  @@map("user_addon_bookings")
+}
+
+// Per-user toggle/state for add-ons (non-booking based)
+model UserAddonState {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key      AddonKey
+  enabled  Boolean  @default(false)
+  settings String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, key])
+  @@index([userId, key])
+  @@map("user_addon_states")
+}
+
+// General app settings (admin-editable key-value store)
+model AppSetting {
+  key       String   @id
+  value     String   // JSON or plain text
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@map("app_settings")
+}
+
+// Marketing / Advertising
+enum MarketingPlacementKey {
+  HOME_TOP
+  HOME_MID
+  HOME_BOTTOM
+  HOME_BANNER
+  HOME_TILE
+  RESULTS_TOP
+  SIDEBAR
+  SPONSORED_POST
+}
+
+enum MarketingOrderStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  ACTIVE
+  COMPLETED
+  CANCELED
+}
+
+// Blog categories
+enum BlogCategory {
+  AKTUELLES
+  INTERESSANT_HEISSES
+  VON_USER_FUER_USER
+}
+
+model MarketingOrder {
+  id          String                @id @default(cuid())
+  userId      String
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status      MarketingOrderStatus  @default(DRAFT)
+  currency    String                @default("EUR")
+  totalCents  Int                   @default(0)
+  note        String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  items       MarketingOrderItem[]
+
+  @@index([userId, status])
+  @@map("marketing_orders")
+}
+
+model MarketingOrderItem {
+  id            String               @id @default(cuid())
+  orderId       String
+  order         MarketingOrder       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  placementKey  MarketingPlacementKey
+  durationDays  Int
+  priceCents    Int
+  createdAt     DateTime             @default(now())
+
+  assets        MarketingAsset[]
+
+  @@index([orderId, placementKey])
+  @@map("marketing_order_items")
+}
+
+model MarketingAsset {
+  id           String              @id @default(cuid())
+  orderItemId  String
+  orderItem    MarketingOrderItem  @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  url          String
+  targetUrl    String?
+  mimeType     String?
+  width        Int?
+  height       Int?
+  status       MarketingAssetStatus @default(PENDING)
+  reviewNote   String?
+  reviewedAt   DateTime?
+  createdAt    DateTime            @default(now())
+
+  @@index([orderItemId])
+  @@map("marketing_assets")
+}
+
+// Blog Posts (internal blog)
+model BlogPost {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  excerpt     String?
+  content     String?
+  coverImage  String?
+  published   Boolean  @default(false)
+  publishedAt DateTime?
+  category    BlogCategory @default(AKTUELLES)
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([published, publishedAt])
+  @@index([authorId])
+  @@map("blog_posts")
+}
+
+// Forum Models
+
+model ForumCategory {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  forums      Forum[]
+
+  @@map("forum_categories")
+}
+
+model Forum {
+  id          String   @id @default(cuid())
+  categoryId  String
+  category    ForumCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  parentId    String?
+  parent      Forum?   @relation("Subforums", fields: [parentId], references: [id])
+  children    Forum[]  @relation("Subforums")
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  image       String?
+  sortOrder   Int      @default(0)
+  isLocked    Boolean  @default(false)
+  isHidden    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  threads     ForumThread[]
+
+  @@index([categoryId, parentId])
+  @@map("forums")
+}
+
+model ForumThread {
+  id         String  @id @default(cuid())
+  forumId    String
+  forum      Forum   @relation(fields: [forumId], references: [id], onDelete: Cascade)
+  authorId   String
+  author     User    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title      String
+  isPinned   Boolean @default(false)
+  isClosed   Boolean @default(false)
+  views      Int     @default(0)
+  lastPostAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  posts      ForumPost[]
+  subscriptions ThreadSubscription[]
+
+  @@index([forumId, isPinned, lastPostAt])
+  @@map("forum_threads")
+}
+
+model ForumPost {
+  id        String   @id @default(cuid())
+  threadId  String
+  thread    ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  content   String
+  parentId  String?
+  parent    ForumPost? @relation("ForumPostReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  children  ForumPost[] @relation("ForumPostReplies")
+  editedAt  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reports   ForumPostReport[]
+
+  @@index([threadId, parentId, createdAt])
+  @@map("forum_posts")
+}
+
+model ThreadSubscription {
+  id        String @id @default(cuid())
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  threadId  String
+  thread    ForumThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, threadId])
+  @@map("thread_subscriptions")
+}
+
+model ForumPostReport {
+  id         String @id @default(cuid())
+  postId     String
+  post       ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  reporterId String
+  reporter   User @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reason     String?
+  status     String @default("OPEN")
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+
+  @@index([postId, status])
+  @@map("forum_post_reports")
+}
+
+// Profile analytics event log
+model ProfileAnalyticsEvent {
+  id             String   @id @default(cuid())
+  profileUserId  String
+  profileUser    User     @relation("ProfileAnalyticsTarget", fields: [profileUserId], references: [id], onDelete: Cascade)
+  visitorId      String?
+  visitor        User?    @relation("ProfileAnalyticsVisitor", fields: [visitorId], references: [id], onDelete: SetNull)
+  sessionId      String
+  type           String   // view_start, view_end, click
+  path           String?
+  referrer       String?
+  country        String?
+  userAgent      String?
+  browser        String?
+  os             String?
+  device         String?
+  durationMs     Int?
+  meta           String?  // JSON payload for flexible fields (e.g., clicks)
+  createdAt      DateTime @default(now())
+
+  @@index([profileUserId, createdAt])
+  @@index([visitorId, createdAt])
+  @@index([sessionId, type])
+  @@map("profile_analytics_events")
+}
+
+// Gamification
+
+enum GamificationEventType {
+  DAILY_LOGIN
+  FORUM_POST
+  FORUM_REPLY
+  FORUM_THREAD
+  FORUM_THREAD_CLOSE
+  FORUM_THREAD_OPEN
+  FEED_POST
+  BLOG_POST
+  BLOG_PUBLISH
+  BLOG_UPDATE_MAJOR
+  COMMENT_VERIFIED
+  REGULAR_USE
+}
+
+model GamificationProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  points         Int      @default(0)
+  level          Int      @default(1)
+  streakDays     Int      @default(0)
+  lastLoginAt    DateTime?
+  totalLogins    Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("gamification_profiles")
+}
+
+model GamificationEvent {
+  id          String                 @id @default(cuid())
+  userId      String
+  user        User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        GamificationEventType
+  points      Int                    @default(0)
+  metadata    String?
+  createdAt   DateTime               @default(now())
+
+  @@index([userId, type, createdAt])
+  @@map("gamification_events")
+}
+
+model Badge {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  name         String
+  description  String?
+  icon         String?
+  pointsReward Int      @default(0)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userBadges   UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  awardedAt DateTime @default(now())
+
+  @@unique([userId, badgeId])
+  @@index([badgeId])
+  @@map("user_badges")
+}
+
+model Perk {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  name         String
+  description  String?
+  thresholdPts Int      @default(0)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userPerks    UserPerk[]
+
+  @@map("perks")
+}
+
+model UserPerk {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  perkId     String
+  perk       Perk     @relation(fields: [perkId], references: [id], onDelete: Cascade)
+  unlockedAt DateTime @default(now())
+  claimedAt  DateTime?
+
+  @@unique([userId, perkId])
+  @@index([perkId])
+  @@map("user_perks")
+}
+
+// Matching system: store member swipe actions on escorts
+enum MatchActionType {
+  LIKE
+  PASS
+}
+
+model MemberMatchAction {
+  id        String          @id @default(cuid())
+  memberId  String
+  member    User            @relation("MemberMatchMember", fields: [memberId], references: [id], onDelete: Cascade)
+  escortId  String
+  escort    User            @relation("MemberMatchEscort", fields: [escortId], references: [id], onDelete: Cascade)
+  action    MatchActionType
+  createdAt DateTime        @default(now())
+
+  @@unique([memberId, escortId])
+  @@index([memberId])
+  @@index([escortId])
+  @@map("member_match_actions")
+}
+
+// User Feedback
+enum FeedbackStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+}
+
+// Reason for user feedback/contact
+enum FeedbackReason {
+  REPORT_AD       // Ich möchte eine Anzeige melden
+  BUG             // Etwas funktioniert nicht
+  PRAISE          // Ich möchte Lob und Kritik hinterlassen
+  ADVERTISING     // Ich möchte Werbung auf TheGND schalten
+  CUSTOMER_SERVICE // Ich suche den Kontakt zu einem Kundenbetreuer
+  OTHER           // Etwas anderes
+}
+
+model Feedback {
+  id        String         @id @default(cuid())
+  userId    String?
+  user      User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email     String?
+  message   String
+  reason    FeedbackReason?
+  customTitle String?
+  contact   String?
+  status    FeedbackStatus @default(OPEN)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([status, createdAt])
+  @@index([reason])
+  @@map("feedback")
+}

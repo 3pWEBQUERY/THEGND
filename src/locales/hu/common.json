@@ -1,0 +1,42 @@
+{
+  "app": { "name": "THEGND" },
+  "nav": {
+    "agb": "ÁSZF",
+    "privacy": "ADATVÉDELEM",
+    "imprint": "IMPRESSZUM",
+    "discover": "FELFEDEZÉS",
+    "search": "KERESÉS",
+    "pricing": "ÁRAK",
+    "info": "INFÓ",
+    "signin": "BEJELENTKEZÉS",
+    "signup": "REGISZTRÁCIÓ"
+  },
+  "sections": { "categories": "KATEGÓRIÁK", "content": "TARTALMAK" },
+  "categories": {
+    "escorts": "ESCORTS",
+    "agencies": "ÜGYNÖKSÉGEK",
+    "clubsStudios": "KLUBOK & STÚDIÓK"
+  },
+  "content": {
+    "stories": "STORIES",
+    "feeds": "FEED",
+    "jobs": "ÁLLÁSOK",
+    "rent": "BÉRLÉS"
+  },
+  "labels": { "highlight": "KIEMELT", "magazine": "MAGAZIN" },
+  "texts": {
+    "discoveryHighlight": "Fedezz fel hitelesített profilokat",
+    "magazineTeaser": "Hírek & Stories"
+  },
+  "cta": { "viewNow": "Megnézem", "readMore": "Tovább" },
+  "misc": { "adBanner": "Hirdetési banner" },
+  "legal": {
+    "header": "Jogi információk",
+    "imprint": { "title": "IMPRESSZUM" },
+    "privacy": { "title": "ADATVÉDELEM" },
+    "terms": { "title": "ÁSZF" }
+  },
+  "footer": {
+    "tagline": "Találd meg a Girls Next Door-t a THEGND-en."
+  }
+}

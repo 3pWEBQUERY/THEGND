@@ -1,0 +1,42 @@
+{
+  "app": { "name": "THEGND" },
+  "nav": {
+    "agb": "PODMÍNKY",
+    "privacy": "OCHRANA OSOBNÍCH ÚDAJŮ",
+    "imprint": "TIRÁŽ",
+    "discover": "OBJEVI",
+    "search": "HLEDAT",
+    "pricing": "CENY",
+    "info": "INFO",
+    "signin": "PŘIHLÁSIT SE",
+    "signup": "REGISTRACE"
+  },
+  "sections": { "categories": "KATEGORIE", "content": "OBSAH" },
+  "categories": {
+    "escorts": "ESCORTS",
+    "agencies": "AGENTURY",
+    "clubsStudios": "KLUBY A STUDIA"
+  },
+  "content": {
+    "stories": "STORIES",
+    "feeds": "FEEDS",
+    "jobs": "PRÁCE",
+    "rent": "PRONÁJEM"
+  },
+  "labels": { "highlight": "DOPORUČUJEME", "magazine": "MAGAZÍN" },
+  "texts": {
+    "discoveryHighlight": "Objevte ověřené profily",
+    "magazineTeaser": "Novinky & Stories"
+  },
+  "cta": { "viewNow": "Zobrazit nyní", "readMore": "Číst více" },
+  "misc": { "adBanner": "Reklamní banner" },
+  "legal": {
+    "header": "Právní informace",
+    "imprint": { "title": "TIRÁŽ" },
+    "privacy": { "title": "OCHRANA OSOBNÍCH ÚDAJŮ" },
+    "terms": { "title": "PODMÍNKY" }
+  },
+  "footer": {
+    "tagline": "Najděte své Girls Next Door na THEGND."
+  }
+}
