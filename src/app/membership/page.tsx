@@ -18,6 +18,7 @@ type DbPlan = {
   priceCents: number
   features: string | null
   userType: string | null
+  sortOrder?: number
 }
 
 export default function MembershipPage() {
