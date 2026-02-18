@@ -40,11 +40,35 @@ export type PublicSettings = {
   }
 }
 
+const DEFAULTS: PublicSettings = {
+  name: 'THEGND',
+  tagline: '',
+  titleSeparator: ' | ',
+  logo: { kind: 'text', text: 'THEGND', imageUrl: '' },
+  faviconUrl: '',
+  primaryLocale: 'de',
+  timezone: 'UTC',
+  dateFormat: 'DD.MM.YYYY',
+  seo: {
+    titleTemplate: '',
+    metaDescription: '',
+    keywords: '',
+    ogImageUrl: '',
+    robotsIndex: true,
+    sitemapEnabled: true,
+  },
+}
+
 export async function getPublicSettings(): Promise<PublicSettings> {
-  const rows = await prisma.appSetting.findMany({ where: { key: { in: PUBLIC_KEYS as unknown as string[] } } })
-  const map = new Map<string, string>()
-  for (const r of rows) map.set(r.key, r.value)
-  return {
+  // During build time DATABASE_URL may not be available (e.g. on Railway)
+  if (!process.env.DATABASE_URL) {
+    return DEFAULTS
+  }
+  try {
+    const rows = await prisma.appSetting.findMany({ where: { key: { in: PUBLIC_KEYS as unknown as string[] } } })
+    const map = new Map<string, string>()
+    for (const r of rows) map.set(r.key, r.value)
+    return {
     name: map.get('site.name') || 'THEGND',
     tagline: map.get('site.tagline') || '',
     titleSeparator: map.get('site.titleSeparator') || ' | ',
@@ -65,5 +89,9 @@ export async function getPublicSettings(): Promise<PublicSettings> {
       robotsIndex: (map.get('seo.robotsIndex') || 'true') === 'true',
       sitemapEnabled: (map.get('seo.sitemapEnabled') || 'true') === 'true',
     },
+  }
+  } catch (error) {
+    console.warn('[settings] Failed to load settings from DB, using defaults:', error instanceof Error ? error.message : error)
+    return DEFAULTS
   }
 }

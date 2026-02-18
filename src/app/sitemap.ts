@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next'
 import { getPublicSettings } from '@/lib/settings'
 
+export const dynamic = 'force-dynamic'
+
 const STATIC_PATHS = [
   '/',
   '/escorts',
