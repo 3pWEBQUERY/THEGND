@@ -754,19 +754,21 @@ model Invoice {
 // Admin-configured membership plans
 model MembershipPlan {
   id          String            @id @default(cuid())
-  key         MembershipPlanKey @unique
+  key         MembershipPlanKey
   name        String
   description String?
   priceCents  Int               // price per month in cents
   active      Boolean           @default(true)
   features    String?           // JSON array of strings
   sortOrder   Int               @default(0)
+  userType    UserType?         // which account type this plan is for (null = legacy/fallback)
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
   // Relations
   userMemberships UserMembership[]
 
+  @@unique([key, userType])
   @@map("membership_plans")
 }
 

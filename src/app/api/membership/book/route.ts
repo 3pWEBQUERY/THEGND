@@ -25,9 +25,14 @@ export async function POST(req: Request) {
       const planKey = body?.planKey as 'BASIS' | 'PLUS' | 'PREMIUM'
       if (!planKey) return NextResponse.json({ error: 'planKey required' }, { status: 400 })
 
-      // Avoid enum filter in where to prevent db enum name mismatch
+      // Look up user's userType from DB
+      const user = await prisma.user.findUnique({ where: { id: userId }, select: { userType: true } })
+      const userType = user?.userType ?? 'MEMBER'
+
+      // Find plan matching key + userType, fall back to plan without userType
       const allPlans = await prisma.membershipPlan.findMany()
-      let plan = allPlans.find((p) => String(p.key) === planKey)
+      let plan = allPlans.find((p) => String(p.key) === planKey && String(p.userType) === String(userType))
+        || allPlans.find((p) => String(p.key) === planKey && !p.userType)
       // If no plan exists yet, create a minimal active plan so booking can proceed
       if (!plan) {
         const newId = randomUUID()
