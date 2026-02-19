@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    await prisma.user.update({
-      where: { id: session.user.id },
+    await prisma.user.updateMany({
+      where: { id: session.user.id, onboardingStatus: 'NOT_STARTED' },
       data: { onboardingStatus: 'IN_PROGRESS' }
     })
 

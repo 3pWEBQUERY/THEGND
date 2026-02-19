@@ -36,9 +36,9 @@ export default function MessageButton({ toUserId, className = "", toDisplayName,
     <>
       <button
         onClick={onClick}
-        className={`inline-flex items-center gap-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-none text-sm tracking-widest transition-colors ${className}`}
+        className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-none text-[11px] sm:text-sm tracking-widest transition-colors ${className}`}
       >
-        <MessageCircle className="h-4 w-4" />
+        <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         NACHRICHT
       </button>
 

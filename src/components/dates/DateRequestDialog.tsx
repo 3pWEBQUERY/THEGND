@@ -16,6 +16,21 @@ type Settings = {
   outfits?: { key: string; label: string }[]
 }
 
+const DEFAULT_PLACES: { key: string; label: string }[] = [
+  { key: 'bei_mir', label: 'Bei mir' },
+  { key: 'bei_dir', label: 'Bei dir' },
+  { key: 'hotel', label: 'Hotel' },
+  { key: 'restaurant', label: 'Restaurant' },
+  { key: 'andere', label: 'Andere' },
+]
+
+const DEFAULT_DURATIONS: { minutes: number; priceCents: number; label: string }[] = [
+  { minutes: 30, priceCents: 0, label: '30 Min.' },
+  { minutes: 60, priceCents: 0, label: '1 Stunde' },
+  { minutes: 120, priceCents: 0, label: '2 Stunden' },
+  { minutes: 180, priceCents: 0, label: '3 Stunden' },
+]
+
 type Props = {
   escortId: string
   escortName?: string | null
@@ -244,7 +259,7 @@ export default function DateRequestDialog({ escortId, escortName, defaultCity, t
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className={triggerClassName || 'px-4 py-2 border border-gray-300 rounded-none text-sm tracking-widest hover:border-pink-500'}>
+        <button className={triggerClassName || 'px-2.5 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-none text-[11px] sm:text-sm tracking-widest hover:border-pink-500'}>
           DATE VEREINBAREN
         </button>
       </DialogTrigger>
@@ -337,22 +352,20 @@ export default function DateRequestDialog({ escortId, escortName, defaultCity, t
           ) : (
           <div className="mt-4 space-y-4">
             {error && <div className="text-sm text-rose-600">{error}</div>}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] text-gray-600 uppercase tracking-widest">Wann?</label>
-                <input type="date" value={date} onChange={e => setDate(e.target.value)} className="mt-2 w-full border border-gray-200 px-3 py-2" />
-              </div>
-              <div>
-                <label className="block text-[11px] text-gray-600 uppercase tracking-widest">Uhrzeit</label>
-                <input type="time" value={time} onChange={e => setTime(e.target.value)} className="mt-2 w-full border border-gray-200 px-3 py-2" />
-              </div>
+            <div>
+              <label className="block text-[11px] text-gray-600 uppercase tracking-widest">Wann?</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} className="mt-2 w-full border border-gray-200 px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-[11px] text-gray-600 uppercase tracking-widest">Uhrzeit</label>
+              <input type="time" value={time} onChange={e => setTime(e.target.value)} className="mt-2 w-full border border-gray-200 px-3 py-2" />
             </div>
 
             {/* Duration section below date/time */}
             <div>
               <label className="block text-[11px] text-gray-600 uppercase tracking-widest">Wie lange?</label>
               <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {(settings?.durations || []).map((d) => {
+                {(settings?.durations?.length ? settings.durations : DEFAULT_DURATIONS).map((d) => {
                   const active = Number(duration) === Number(d.minutes)
                   return (
                     <button
@@ -412,7 +425,7 @@ export default function DateRequestDialog({ escortId, escortName, defaultCity, t
                     <SelectValue placeholder="Ort wählen…" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(settings?.places || []).map((p) => (
+                    {(settings?.places?.length ? settings.places : DEFAULT_PLACES).map((p) => (
                       <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>
                     ))}
                   </SelectContent>

@@ -482,9 +482,9 @@ export default function StoriesComponent() {
 
       {/* Create Story Dialog */}
       {createDialogOpen && (
-        <div className="fixed inset-0 bg-black/30 bg-opacity-50 flex items-center justify-center z-50 p-6">
-          <div className="bg-white max-w-lg w-full rounded-none">
-            <div className="p-8">
+        <div className="fixed inset-0 bg-black/30 bg-opacity-50 flex items-end sm:items-center justify-center z-[10010] sm:p-6">
+          <div className="bg-white w-full sm:max-w-lg rounded-none max-h-[92vh] overflow-y-auto animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
+            <div className="p-4 sm:p-8">
               <div className="text-center mb-6">
                 <h3 className="text-xl font-thin tracking-wider text-gray-800 mb-2">NEUE STORY ERSTELLEN</h3>
                 <div className="w-12 h-px bg-pink-500 mx-auto mb-4"></div>

@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    await prisma.user.update({ where: { id: session.user.id }, data: { onboardingStatus: 'IN_PROGRESS' } })
+    await prisma.user.updateMany({ where: { id: session.user.id, onboardingStatus: 'NOT_STARTED' }, data: { onboardingStatus: 'IN_PROGRESS' } })
 
     return NextResponse.json({ message: 'Schritt 4 erfolgreich gespeichert', profile }, { status: 200 })
   } catch (error) {

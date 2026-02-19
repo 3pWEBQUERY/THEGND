@@ -167,9 +167,9 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Update onboarding status
-    await prisma.user.update({
-      where: { id: session.user.id },
+    // Only set IN_PROGRESS for fresh users (don't overwrite SKIPPED/COMPLETED)
+    await prisma.user.updateMany({
+      where: { id: session.user.id, onboardingStatus: 'NOT_STARTED' },
       data: { onboardingStatus: 'IN_PROGRESS' }
     })
 

@@ -13,14 +13,16 @@ export default function GalleryGrid({ images, altBase, className = "" }: Props) 
   const [index, setIndex] = useState<number>(0)
   const [originalSize, setOriginalSize] = useState(true)
 
+  const [origin, setOrigin] = useState('')
+  useEffect(() => { setOrigin(window.location.origin) }, [])
+
   // Build an absolute URL for the image (handles relative /uploads/... paths)
   const toAbsoluteUrl = (u: string): string => {
     if (!u) return ""
     if (/^https?:\/\//i.test(u)) return u
+    if (!origin) return u
     try {
-      if (typeof window !== 'undefined') {
-        return new URL(u, window.location.origin).toString()
-      }
+      return new URL(u, origin).toString()
     } catch {}
     return u
   }

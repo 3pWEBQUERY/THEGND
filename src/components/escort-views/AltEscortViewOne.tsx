@@ -102,10 +102,10 @@ export default function AltEscortViewOne(props: {
               <MessageButton toUserId={escortId} toDisplayName={name ?? undefined} toAvatar={image ?? undefined} />
               <DateRequestDialog escortId={escortId} escortName={name} defaultCity={city} escortAvatar={image} />
               {contact.phone && (
-                <a href={`tel:${contact.phone}`} className="px-4 py-2 border border-gray-300 rounded-none text-sm tracking-widest hover:border-pink-500">ANRUFEN</a>
+                <a href={`tel:${contact.phone}`} className="px-2.5 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-none text-[11px] sm:text-sm tracking-widest hover:border-pink-500">ANRUFEN</a>
               )}
               {contact.website && (
-                <a href={contact.website} target="_blank" rel="noopener noreferrer" className="px-4 py-2 border border-gray-300 rounded-none text-sm tracking-widest hover:border-pink-500">WEBSEITE</a>
+                <a href={contact.website} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-none text-[11px] sm:text-sm tracking-widest hover:border-pink-500">WEBSEITE</a>
               )}
             </div>
             <div className="flex items-center gap-2">
