@@ -158,8 +158,6 @@ export default function DashboardHeader({ session, activeTab, setActiveTab }: Da
     if (session?.user?.id) loadAvatar()
   }, [session?.user?.id])
 
-  const userType = (session?.user as any)?.userType ?? 'MEMBER'
-
   // Load thumbnails for notifications that embed [uid:<id>]
   useEffect(() => {
     if (!notifOpen || !notifications || notifications.length === 0) return
