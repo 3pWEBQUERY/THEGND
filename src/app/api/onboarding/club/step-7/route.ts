@@ -35,6 +35,7 @@ export async function GET() {
       {
         address: profile?.address ?? '',
         city: profile?.city ?? '',
+        state: profile?.state ?? '',
         country: profile?.country ?? '',
         zipCode: profile?.zipCode ?? '',
         location,
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
       update: {
         address: validated.address,
         city: validated.city,
+        state: validated.state ?? null,
         country: validated.country,
         zipCode: validated.zipCode ?? null,
         latitude: loc?.lat ?? null,
@@ -81,6 +83,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         address: validated.address,
         city: validated.city,
+        state: validated.state ?? null,
         country: validated.country,
         zipCode: validated.zipCode ?? null,
         latitude: loc?.lat ?? null,

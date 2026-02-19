@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import Tabs from "@/components/Tabs"
+import { CITY_TO_STATE } from "@/data/city-states"
 
 const FEATURED: { key: string; label: string; cities: string[] }[] = [
   {
@@ -110,9 +111,13 @@ function getCityBackgrounds(name: string, i: number): string[] {
 }
 
 function CityCard({ name, index }: { name: string; index: number }) {
+  const state = CITY_TO_STATE[name]
+  const href = state
+    ? `/escorts?state=${encodeURIComponent(state)}&location=${encodeURIComponent(name)}`
+    : `/escorts?location=${encodeURIComponent(name)}`
   return (
     <Link
-      href={`/escorts?location=${encodeURIComponent(name)}`}
+      href={href}
       className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500"
       aria-label={`Escorts in ${name} anzeigen`}
     >

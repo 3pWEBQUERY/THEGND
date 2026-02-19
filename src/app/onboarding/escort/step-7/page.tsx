@@ -32,6 +32,7 @@ export default function EscortOnboardingStep7() {
     defaultValues: {
       address: '',
       city: '',
+      state: '',
       country: '',
       zipCode: '',
       location: undefined
@@ -59,6 +60,7 @@ export default function EscortOnboardingStep7() {
         reset({
           address: data.address || '',
           city: data.city || '',
+          state: data.state || '',
           country: data.country || '',
           zipCode: data.zipCode || '',
           location: data.location || undefined
@@ -81,6 +83,13 @@ export default function EscortOnboardingStep7() {
     // Attach Autocomplete to the address input when available
     initAutocomplete()
   }
+
+  // If Google Maps was already loaded (e.g. from a previous page), initialize immediately
+  useEffect(() => {
+    if ((window as any).google?.maps) {
+      onMapsLoaded()
+    }
+  }, [])
 
   function initMap(lat: number, lng: number) {
     if (!mapContainerRef.current) return
@@ -132,12 +141,14 @@ export default function EscortOnboardingStep7() {
       let city = ''
       let zip = ''
       let country = ''
+      let state = ''
       for (const c of comps) {
         if (c.types.includes('locality')) city = c.long_name
         else if (c.types.includes('postal_town')) city = c.long_name
         else if (c.types.includes('administrative_area_level_2') && !city) city = c.long_name
         if (c.types.includes('postal_code')) zip = c.long_name
         if (c.types.includes('country')) country = c.long_name
+        if (c.types.includes('administrative_area_level_1')) state = c.long_name
       }
 
       const lat = typeof location.lat === 'function' ? location.lat() : (location as any).lat
@@ -147,6 +158,7 @@ export default function EscortOnboardingStep7() {
       setValue('city', city)
       setValue('zipCode', zip)
       setValue('country', country)
+      setValue('state', state)
       setValue('location', {
         lat,
         lng,

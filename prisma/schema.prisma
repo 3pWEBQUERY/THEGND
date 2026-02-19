@@ -448,6 +448,7 @@ model Profile {
   // Location details (Escort/Agency/Club/Studio)
   address     String?
   city        String?
+  state       String?   // Kanton (CH) / Bundesland (DE/AT) — administrative_area_level_1
   country     String?
   zipCode     String?
   
@@ -478,6 +479,7 @@ model Profile {
 
   @@map("profiles")
   @@index([latitude, longitude])
+  @@index([state])
 }
 
 // Posts Model

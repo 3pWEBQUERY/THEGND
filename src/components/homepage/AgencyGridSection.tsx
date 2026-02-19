@@ -13,7 +13,7 @@ export default function AgencyGridSection() {
   useEffect(() => {
     ;(async () => {
       try {
-        const res = await fetch('/api/agency/search?take=12', { cache: 'no-store' })
+        const res = await fetch('/api/agency/search?take=3', { cache: 'no-store' })
         if (res.ok) {
           const data = await res.json()
           setItems(Array.isArray(data.items) ? data.items : [])
@@ -45,9 +45,9 @@ export default function AgencyGridSection() {
           <div className="w-24 h-px bg-pink-500 mx-auto"></div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {loading && !items &&
-            Array.from({ length: 12 }).map((_, i) => (
+            Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="group cursor-pointer rounded-none">
                 <div className="h-48 sm:h-56 md:h-64 lg:h-72 bg-gray-200 relative overflow-hidden animate-pulse border border-gray-200" />
                 <div className="px-3 py-3">

@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { renderMarkdownToSafeHtml } from '@/lib/markdown'
+import Link from 'next/link'
+import { getProfileUrl } from '@/lib/validations'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,12 +47,37 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
       author: {
         select: {
           id: true,
+          userType: true,
           profile: { select: { displayName: true, avatar: true, bio: true } },
         },
       },
     },
   })
   if (!post || !post.published) return notFound()
+
+  // Fetch related posts: same category first, then recent, excluding current
+  const relatedPosts = await (prisma as any).blogPost.findMany({
+    where: {
+      published: true,
+      slug: { not: slug },
+    },
+    orderBy: [{ publishedAt: 'desc' }],
+    take: 20,
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      excerpt: true,
+      coverImage: true,
+      category: true,
+      publishedAt: true,
+    },
+  })
+
+  // Prioritise same-category posts, fill up with others – max 3
+  const sameCategory = relatedPosts.filter((p: any) => p.category === post.category)
+  const otherCategory = relatedPosts.filter((p: any) => p.category !== post.category)
+  const related = [...sameCategory, ...otherCategory].slice(0, 3)
 
   // Compute reading time from raw markdown content (approx. 200 wpm)
   const raw = (post.content || '').toString()
@@ -110,16 +137,23 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
         {/* Author info */}
         <div className="mt-14">
           <div className="h-[2px] w-64 sm:w-80 md:w-96 lg:w-[32rem] mx-auto bg-gradient-to-r from-pink-600/0 via-pink-500/80 to-pink-600/0" />
-          <div className="mt-6 flex items-center gap-4">
+          <Link
+            href={getProfileUrl({
+              id: post.author?.id ?? '',
+              userType: post.author?.userType ?? 'MEMBER',
+              displayName: post.author?.profile?.displayName,
+            })}
+            className="mt-6 flex items-center gap-4 group"
+          >
             {post.author?.profile?.avatar ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={post.author.profile.avatar}
                 alt={post.author?.profile?.displayName || 'Autor'}
-                className="h-16 w-16 object-cover border border-gray-200"
+                className="h-16 w-16 object-cover border border-gray-200 group-hover:border-pink-400 transition-colors"
               />
             ) : (
-              <div className="h-16 w-16 bg-pink-100 text-pink-700 grid place-items-center border border-gray-200">
+              <div className="h-16 w-16 bg-pink-100 text-pink-700 grid place-items-center border border-gray-200 group-hover:border-pink-400 transition-colors">
                 <span className="text-lg font-medium">
                   {(post.author?.profile?.displayName || 'A').slice(0, 1).toUpperCase()}
                 </span>
@@ -127,16 +161,61 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
             )}
             <div>
               <div className="text-[11px] uppercase tracking-widest text-gray-500">Autor</div>
-              <div className="text-base font-medium text-gray-900">
+              <div className="text-base font-medium text-gray-900 group-hover:text-pink-600 transition-colors">
                 {post.author?.profile?.displayName || 'Unbekannter Autor'}
               </div>
               {post.author?.profile?.bio && (
                 <p className="mt-1 text-sm text-gray-600 max-w-2xl">{post.author.profile.bio}</p>
               )}
             </div>
-          </div>
+          </Link>
         </div>
       </section>
+
+      {/* Related Posts */}
+      {related.length > 0 && (
+        <section className="max-w-6xl mx-auto px-6 pb-20">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl font-light tracking-[0.2em] text-gray-800">ÄHNLICHE BEITRÄGE</h2>
+            <div className="mt-3 h-[2px] w-20 mx-auto bg-gradient-to-r from-pink-600/0 via-pink-500/80 to-pink-600/0" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {related.map((rp: any) => (
+              <Link
+                key={rp.id}
+                href={`/blog/${rp.slug}`}
+                className="group block border border-gray-100 hover:border-pink-200 transition-colors"
+              >
+                {rp.coverImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={rp.coverImage}
+                    alt={rp.title}
+                    className="w-full h-48 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
+                    <span className="text-xs font-light tracking-widest text-gray-400 uppercase">Kein Bild</span>
+                  </div>
+                )}
+                <div className="p-5">
+                  <div className="text-[10px] font-light tracking-widest text-gray-400 uppercase mb-2">
+                    {rp.publishedAt
+                      ? new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(rp.publishedAt))
+                      : ''}
+                  </div>
+                  <h3 className="text-base font-medium tracking-wide text-gray-900 group-hover:text-pink-600 transition-colors line-clamp-2">
+                    {rp.title}
+                  </h3>
+                  {rp.excerpt && (
+                    <p className="mt-2 text-sm font-light text-gray-600 line-clamp-2">{rp.excerpt}</p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <Footer />
     </div>

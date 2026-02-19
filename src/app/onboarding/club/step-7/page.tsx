@@ -28,7 +28,7 @@ export default function ClubOnboardingStep7() {
 
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<Step7Form>({
     resolver: zodResolver(businessOnboardingStep7Schema),
-    defaultValues: { address: '', city: '', country: '', zipCode: '', location: undefined }
+    defaultValues: { address: '', city: '', state: '', country: '', zipCode: '', location: undefined }
   })
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
@@ -49,6 +49,7 @@ export default function ClubOnboardingStep7() {
         reset({
           address: data.address || '',
           city: data.city || '',
+          state: data.state || '',
           country: data.country || '',
           zipCode: data.zipCode || '',
           location: data.location || undefined,
@@ -65,6 +66,13 @@ export default function ClubOnboardingStep7() {
     setMapsReady(true)
     initAutocomplete()
   }
+
+  // If Google Maps was already loaded (e.g. from a previous page), initialize immediately
+  useEffect(() => {
+    if ((window as any).google?.maps) {
+      onMapsLoaded()
+    }
+  }, [])
 
   function initMap(lat: number, lng: number) {
     if (!mapContainerRef.current) return
@@ -99,12 +107,14 @@ export default function ClubOnboardingStep7() {
       let city = ''
       let zip = ''
       let country = ''
+      let state = ''
       for (const c of comps) {
         if (c.types.includes('locality')) city = c.long_name
         else if (c.types.includes('postal_town')) city = c.long_name
         else if (c.types.includes('administrative_area_level_2') && !city) city = c.long_name
         if (c.types.includes('postal_code')) zip = c.long_name
         if (c.types.includes('country')) country = c.long_name
+        if (c.types.includes('administrative_area_level_1')) state = c.long_name
       }
       const lat = typeof location.lat === 'function' ? location.lat() : (location as any).lat
       const lng = typeof location.lng === 'function' ? location.lng() : (location as any).lng
@@ -112,6 +122,7 @@ export default function ClubOnboardingStep7() {
       setValue('city', city)
       setValue('zipCode', zip)
       setValue('country', country)
+      setValue('state', state)
       setValue('location', { lat, lng, placeId: place.place_id, formattedAddress: place.formatted_address })
       initMap(lat, lng)
     })

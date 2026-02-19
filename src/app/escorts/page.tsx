@@ -29,6 +29,7 @@ function EscortsPageInner() {
   const searchParams = useSearchParams()
   const [q, setQ] = useState('')
   const [location, setLocation] = useState('')
+  const [stateFilter, setStateFilter] = useState('')
   const [items, setItems] = useState<EscortItem[] | null>(null)
   const [total, setTotal] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
@@ -52,6 +53,7 @@ function EscortsPageInner() {
   const queryString = useMemo(() => {
     const params = new URLSearchParams()
     if (q.trim()) params.set('q', q.trim())
+    if (stateFilter.trim()) params.set('state', stateFilter.trim())
     if (location.trim()) params.set('location', location.trim())
     // add advanced filters
     Object.entries(filters).forEach(([key, value]) => {
@@ -62,7 +64,7 @@ function EscortsPageInner() {
     if (verifiedOnly) params.set('verifiedOnly', '1')
     if (ageVerifiedOnly) params.set('ageVerifiedOnly', '1')
     return params.toString()
-  }, [q, location, filters, verifiedOnly, ageVerifiedOnly])
+  }, [q, location, stateFilter, filters, verifiedOnly, ageVerifiedOnly])
 
   async function fetchEscorts() {
     setLoading(true)
@@ -94,6 +96,7 @@ function EscortsPageInner() {
     }
     const initialQ = sp.get('q')?.trim() || ''
     const initialLocation = sp.get('location')?.trim() || ''
+    const initialState = sp.get('state')?.trim() || ''
     const initialViewRaw = sp.get('view')?.trim()?.toLowerCase() || ''
     const initialView = (['grid', 'list', 'map'].includes(initialViewRaw) ? (initialViewRaw as 'grid' | 'list' | 'map') : 'grid')
     const initialFilters: EscortFilters = {
@@ -109,6 +112,7 @@ function EscortsPageInner() {
     }
     setQ(initialQ)
     setLocation(initialLocation)
+    setStateFilter(initialState)
     setFilters(initialFilters)
     setVerifiedOnly(sp.get('verifiedOnly') === '1')
     setAgeVerifiedOnly(sp.get('ageVerifiedOnly') === '1')
@@ -117,6 +121,7 @@ function EscortsPageInner() {
     // Fetch with these initial params immediately
     const p = new URLSearchParams()
     if (initialQ) p.set('q', initialQ)
+    if (initialState) p.set('state', initialState)
     if (initialLocation) p.set('location', initialLocation)
     Object.entries(initialFilters).forEach(([k, v]) => {
       const val = (v || '').toString().trim()
@@ -149,7 +154,7 @@ function EscortsPageInner() {
       fetchEscorts()
     }, 300)
     return () => clearTimeout(t)
-  }, [q, location, filters])
+  }, [q, location, stateFilter, filters])
 
   // Update URL when view mode changes, without re-fetching data
   useEffect(() => {
@@ -186,6 +191,24 @@ function EscortsPageInner() {
         ageVerifiedOnly={ageVerifiedOnly}
         setAgeVerifiedOnly={setAgeVerifiedOnly}
       />
+
+      {/* Active state/region filter badge */}
+      {stateFilter && (
+        <div className="bg-white">
+          <div className="max-w-7xl mx-auto px-6 pb-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs tracking-widest text-gray-500 uppercase">Region:</span>
+              <button
+                onClick={() => { setStateFilter(''); setLocation('') }}
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs tracking-widest bg-pink-600 text-white hover:bg-pink-700 transition-colors"
+              >
+                {stateFilter}
+                <span className="ml-1">&times;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* View mode toggle */}
       <div className="bg-white">

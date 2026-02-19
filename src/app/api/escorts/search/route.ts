@@ -67,6 +67,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const q = searchParams.get('q')?.trim() || ''
   const location = searchParams.get('location')?.trim() || ''
+  const state = searchParams.get('state')?.trim() || ''
   const take = Math.min(Number(searchParams.get('take') || '60'), 100)
   const skip = Math.max(Number(searchParams.get('skip') || '0'), 0)
   const verifiedOnly = searchParams.get('verifiedOnly') === '1'
@@ -109,7 +110,12 @@ export async function GET(request: Request) {
       ],
     })
   }
-  if (location) {
+  if (state) {
+    and.push({
+      profile: { is: { state: { equals: state, mode: 'insensitive' } } },
+    })
+  }
+  if (location && !state) {
     and.push({
       OR: [
         { profile: { is: { city: { contains: location, mode: 'insensitive' } } } },

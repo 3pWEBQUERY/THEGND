@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const detailsRef = useRef<HTMLDivElement>(null)
   const [displayName, setDisplayName] = useState<string>('')
   const [city, setCity] = useState<string>('')
+  const [stateRegion, setStateRegion] = useState<string>('')
   const [country, setCountry] = useState<string>('')
   const [loadingProfile, setLoadingProfile] = useState<boolean>(false)
   const [savingProfile, setSavingProfile] = useState<boolean>(false)
@@ -224,6 +225,7 @@ export default function SettingsPage() {
         if (active) {
           setDisplayName(data?.user?.profile?.displayName ?? '')
           setCity(data?.user?.profile?.city ?? '')
+          setStateRegion(data?.user?.profile?.state ?? '')
           setCountry(data?.user?.profile?.country ?? '')
           setVisibility((data?.user?.profile?.visibility as 'PUBLIC' | 'VERIFIED' | 'PRIVATE') ?? 'PUBLIC')
           setNotificationPref((data?.user?.profile?.notificationPreference as 'ALL' | 'IMPORTANT' | 'NONE') ?? 'ALL')
@@ -248,6 +250,7 @@ export default function SettingsPage() {
         body: JSON.stringify({ profileData: { 
           displayName: displayName?.trim() || null,
           city: city?.trim() || null,
+          state: stateRegion?.trim() || null,
           country: country?.trim() || null,
         } })
       })
@@ -336,6 +339,16 @@ export default function SettingsPage() {
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     placeholder="z. B. Berlin"
+                    className="mt-2 border-0 border-b-2 border-gray-200 rounded-none px-0 py-3 text-sm font-light focus:border-pink-500 focus:ring-0 bg-transparent"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="stateRegion" className="text-xs font-light tracking-widest text-gray-800 uppercase">KANTON / BUNDESLAND</Label>
+                  <Input
+                    id="stateRegion"
+                    value={stateRegion}
+                    onChange={(e) => setStateRegion(e.target.value)}
+                    placeholder="z. B. Bayern, Zürich"
                     className="mt-2 border-0 border-b-2 border-gray-200 rounded-none px-0 py-3 text-sm font-light focus:border-pink-500 focus:ring-0 bg-transparent"
                   />
                 </div>

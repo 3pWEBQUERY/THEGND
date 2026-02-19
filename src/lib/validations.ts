@@ -129,6 +129,7 @@ export const escortOnboardingStep6Schema = z.object({
 export const escortOnboardingStep7Schema = z.object({
   address: z.string().min(5, 'Adresse ist erforderlich'),
   city: z.string().min(2, 'Stadt ist erforderlich'),
+  state: z.string().optional(),
   country: z.string().min(2, 'Land ist erforderlich'),
   zipCode: z.string().min(2, 'PLZ ist erforderlich').max(20).optional(),
   location: z
@@ -249,6 +250,7 @@ export const businessOnboardingStep6Schema = z.object({
 export const businessOnboardingStep7Schema = z.object({
   address: z.string().min(5, 'Adresse ist erforderlich'),
   city: z.string().min(2, 'Stadt ist erforderlich'),
+  state: z.string().optional(),
   country: z.string().min(2, 'Land ist erforderlich'),
   zipCode: z.string().min(2, 'PLZ ist erforderlich').max(20).optional(),
   location: z
@@ -300,6 +302,26 @@ export const getUserTypeDisplayName = (userType: UserType): string => {
     STUDIO: 'Studio'
   }
   return typeMap[userType]
+}
+
+export const getProfileUrl = (opts: { id: string; userType: string; displayName?: string | null }): string => {
+  const slug = (opts.displayName || 'profil')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+  switch (opts.userType) {
+    case 'ESCORT':
+    case 'HOBBYHURE':
+      return `/escorts/${opts.id}/${slug}`
+    case 'AGENCY':
+      return `/agency/${opts.id}/${slug}`
+    case 'CLUB':
+    case 'STUDIO':
+      return `/club-studio/${opts.id}/${slug}`
+    case 'MEMBER':
+    default:
+      return `/members/${opts.id}/${slug}`
+  }
 }
 
 export const getGenderDisplayName = (gender: Gender): string => {

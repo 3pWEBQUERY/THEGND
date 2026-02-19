@@ -69,7 +69,7 @@ export default function BusinessSteps({
           <h3 className="font-light tracking-wide text-gray-800">Medien</h3>
           <p className="text-sm font-light text-gray-600">Logo & Galerie</p>
         </div>
-        <Link href={addEditParam(`/onboarding/${base}/step-4`)} className="text-xs font-light text-pink-600 hover:underline">Öffnen</Link>
+        <Link href={addEditParam(`/onboarding/${base}/${base === 'agency' ? 'step-3' : 'step-4'}`)} className="text-xs font-light text-pink-600 hover:underline">Öffnen</Link>
       </div>
 
       {/* Leistungen (Agency) oder Ausstattung & Räume (Club/Studio) */}
@@ -80,7 +80,7 @@ export default function BusinessSteps({
             <h3 className="font-light tracking-wide text-gray-800">Leistungen</h3>
             <p className="text-sm font-light text-gray-600">Services auswählen</p>
           </div>
-          <Link href={addEditParam('/onboarding/agency/step-5')} className="text-xs font-light text-pink-600 hover:underline">Öffnen</Link>
+          <Link href={addEditParam('/onboarding/agency/step-4')} className="text-xs font-light text-pink-600 hover:underline">Öffnen</Link>
         </div>
       ) : (
         <div className={`flex items-center space-x-4 p-4 border-l-2 ${agencyStep5Completed ? 'border-pink-500' : 'border-gray-200'}`}>
@@ -100,7 +100,7 @@ export default function BusinessSteps({
           <h3 className="font-light tracking-wide text-gray-800">Kontakt</h3>
           <p className="text-sm font-light text-gray-600">Telefon, Website & Social</p>
         </div>
-        <Link href={addEditParam(`/onboarding/${base}/step-6`)} className="text-xs font-light text-pink-600 hover:underline">Öffnen</Link>
+        <Link href={addEditParam(`/onboarding/${base}/${base === 'agency' ? 'step-5' : 'step-6'}`)} className="text-xs font-light text-pink-600 hover:underline">Öffnen</Link>
       </div>
 
       {/* Standort (Schritt 7) */}
@@ -110,7 +110,7 @@ export default function BusinessSteps({
           <h3 className="font-light tracking-wide text-gray-800">Standort</h3>
           <p className="text-sm font-light text-gray-600">Adresse, Stadt, Land</p>
         </div>
-        <Link href={addEditParam(`/onboarding/${base}/step-7`)} className="text-xs font-light text-pink-600 hover:underline">Öffnen</Link>
+        <Link href={addEditParam(`/onboarding/${base}/${base === 'agency' ? 'step-6' : 'step-7'}`)} className="text-xs font-light text-pink-600 hover:underline">Öffnen</Link>
       </div>
     </>
   )

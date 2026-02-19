@@ -13,7 +13,8 @@ import {
   Users,
   ArrowLeft
 } from 'lucide-react'
-import { getUserTypeDisplayName } from '@/lib/validations'
+import { getUserTypeDisplayName, getProfileUrl } from '@/lib/validations'
+import Link from 'next/link'
 
 interface Message {
   id: string
@@ -248,6 +249,7 @@ export default function MessagingComponent() {
     if (!selectedConversation) return null
     if (prefill && prefill.id === selectedConversation) {
       return {
+        id: prefill.id,
         name: prefill.name || '',
         avatar: prefill.avatar,
         userType: prefill.userType
@@ -260,7 +262,11 @@ export default function MessagingComponent() {
     )
     
     if (conversation) {
+      const partnerId = conversation.senderId === session?.user?.id
+        ? conversation.receiverId
+        : conversation.senderId
       return {
+        id: partnerId,
         name: conversation.partner_display_name || conversation.partner_email,
         avatar: conversation.partner_avatar,
         userType: conversation.partner_user_type
@@ -271,6 +277,7 @@ export default function MessagingComponent() {
     const user = searchResults.find(u => u.id === selectedConversation)
     if (user) {
       return {
+        id: user.id,
         name: user.profile?.displayName || user.email,
         avatar: user.profile?.avatar,
         userType: user.userType
@@ -389,8 +396,11 @@ export default function MessagingComponent() {
               {(() => {
                 const info = getSelectedConversationInfo()
                 return info ? (
-                  <div className="flex items-center space-x-3">
-                    <div className="h-9 w-9 bg-gray-100 flex items-center justify-center">
+                  <Link
+                    href={getProfileUrl({ id: info.id, userType: info.userType || 'MEMBER', displayName: info.name })}
+                    className="flex items-center space-x-3 group"
+                  >
+                    <div className="h-9 w-9 bg-gray-100 flex items-center justify-center group-hover:ring-1 group-hover:ring-pink-400 transition-all">
                       {info.avatar ? (
                         <img src={info.avatar} alt="Avatar" className="h-full w-full object-cover" />
                       ) : (
@@ -400,12 +410,12 @@ export default function MessagingComponent() {
                       )}
                     </div>
                     <div>
-                      <div className="text-sm font-light tracking-wide text-gray-800">{info.name}</div>
+                      <div className="text-sm font-light tracking-wide text-gray-800 group-hover:text-pink-600 transition-colors">{info.name}</div>
                       <div className="text-[10px] font-light tracking-widest text-gray-500 uppercase">
                         {getUserTypeDisplayName(info.userType as any)}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ) : (
                   <div className="text-sm font-light tracking-wide text-gray-800">KONVERSATION</div>
                 )
@@ -571,8 +581,11 @@ export default function MessagingComponent() {
               {(() => {
                 const info = getSelectedConversationInfo()
                 return info ? (
-                  <div className="flex items-center space-x-3">
-                    <div className="h-10 w-10 bg-gray-100 flex items-center justify-center">
+                  <Link
+                    href={getProfileUrl({ id: info.id, userType: info.userType || 'MEMBER', displayName: info.name })}
+                    className="flex items-center space-x-3 group"
+                  >
+                    <div className="h-10 w-10 bg-gray-100 flex items-center justify-center group-hover:ring-1 group-hover:ring-pink-400 transition-all">
                       {info.avatar ? (
                         <img 
                           src={info.avatar} 
@@ -586,12 +599,12 @@ export default function MessagingComponent() {
                       )}
                     </div>
                     <div>
-                      <div className="text-sm font-light tracking-wide text-gray-800">{info.name}</div>
+                      <div className="text-sm font-light tracking-wide text-gray-800 group-hover:text-pink-600 transition-colors">{info.name}</div>
                       <div className="text-xs font-light tracking-widest text-gray-500 uppercase">
                         {getUserTypeDisplayName(info.userType as any)}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ) : (
                   <div className="text-sm font-light tracking-wide text-gray-800">KONVERSATION</div>
                 )

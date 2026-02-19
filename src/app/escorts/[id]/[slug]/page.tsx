@@ -278,6 +278,7 @@ async function getEscort(id: string) {
     slogan: profile?.slogan ?? null,
     age: (profile as any)?.age ?? null,
     city: profile?.city ?? null,
+    state: profile?.state ?? null,
     country: profile?.country ?? null,
     description: profile?.description ?? null,
     image: primaryImage,
@@ -578,10 +579,11 @@ export default async function EscortProfilePage({ params, searchParams }: { para
     selectedView = candidate
   }
 
-  // Find similar escorts (same city first, then same country), exclude current profile
+  // Find similar escorts (same state/region first, then same city, then same country), exclude current profile
   let similarItems: Array<{ id: string; name: string | null; city: string | null; country: string | null; image: string | null; isVerified?: boolean; isAgeVerified?: boolean }> = []
   try {
     const city = data.city || null
+    const state = data.state || null
     const country = data.country || null
     // Helper to map a user+profile to card item
     const mapToItem = (u: any) => ({
@@ -593,23 +595,52 @@ export default async function EscortProfilePage({ params, searchParams }: { para
       isVerified: (u.profile?.visibility ?? '') === 'VERIFIED',
       isAgeVerified: (u.profile?.visibility ?? '') === 'VERIFIED',
     })
-    const byCity = await prisma.user.findMany({
-      where: {
-        isActive: true,
-        userType: { in: ['ESCORT','HOBBYHURE'] },
-        id: { not: data.id },
-        profile: {
-          is: {
-            city: city ?? undefined,
-            visibility: { in: ['PUBLIC', 'VERIFIED'] as any },
+    // First: same state/region (Kanton/Bundesland)
+    if (state) {
+      const byState = await prisma.user.findMany({
+        where: {
+          isActive: true,
+          userType: { in: ['ESCORT','HOBBYHURE'] },
+          id: { not: data.id },
+          profile: {
+            is: {
+              state,
+              visibility: { in: ['PUBLIC', 'VERIFIED'] as any },
+            },
           },
         },
-      },
-      take: 12,
-      orderBy: { createdAt: 'desc' },
-      include: { profile: true },
-    })
-    similarItems = byCity.map(mapToItem)
+        take: 12,
+        orderBy: { createdAt: 'desc' },
+        include: { profile: true },
+      })
+      similarItems = byState.map(mapToItem)
+    }
+    // Second: same city (if not enough from state)
+    if (similarItems.length < 12 && city) {
+      const byCity = await prisma.user.findMany({
+        where: {
+          isActive: true,
+          userType: { in: ['ESCORT','HOBBYHURE'] },
+          id: { not: data.id },
+          profile: {
+            is: {
+              city,
+              visibility: { in: ['PUBLIC', 'VERIFIED'] as any },
+            },
+          },
+        },
+        take: 12,
+        orderBy: { createdAt: 'desc' },
+        include: { profile: true },
+      })
+      const seen = new Set(similarItems.map((x) => x.id))
+      for (const u of byCity) {
+        if (seen.has(u.id)) continue
+        similarItems.push(mapToItem(u))
+        if (similarItems.length >= 12) break
+      }
+    }
+    // Third: same country
     if (similarItems.length < 12 && country) {
       const more = await prisma.user.findMany({
         where: {

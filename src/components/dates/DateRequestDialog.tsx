@@ -248,7 +248,7 @@ export default function DateRequestDialog({ escortId, escortName, defaultCity, t
           DATE VEREINBAREN
         </button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl rounded-none p-0">
+      <DialogContent className="sm:max-w-2xl rounded-none p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
         {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
           <Script
             src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places,marker&language=de`}
@@ -256,7 +256,7 @@ export default function DateRequestDialog({ escortId, escortName, defaultCity, t
             onLoad={() => setMapsReady(true)}
           />
         )}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <DialogHeader className="border-b border-gray-200">
             <DialogTitle className="text-sm font-light tracking-widest text-gray-800 uppercase">DATE-ANFRAGE</DialogTitle>
           </DialogHeader>

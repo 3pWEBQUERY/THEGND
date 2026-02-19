@@ -12,11 +12,11 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ArrowLeft } from 'lucide-react'
-import { escortOnboardingStep7Schema } from '@/lib/validations'
+import { businessOnboardingStep7Schema } from '@/lib/validations'
 
-type Step7Form = z.infer<typeof escortOnboardingStep7Schema>
+type Step7Form = z.infer<typeof businessOnboardingStep7Schema>
 
-export default function HobbyhureOnboardingStep7() {
+export default function AgencyOnboardingStep6() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const isEditMode = searchParams.get('edit') === '1'
@@ -27,15 +27,8 @@ export default function HobbyhureOnboardingStep7() {
   const [mapsReady, setMapsReady] = useState(false)
 
   const { register, handleSubmit, setValue, reset, formState: { errors } } = useForm<Step7Form>({
-    resolver: zodResolver(escortOnboardingStep7Schema),
-    defaultValues: {
-      address: '',
-      city: '',
-      state: '',
-      country: '',
-      zipCode: '',
-      location: undefined
-    }
+    resolver: zodResolver(businessOnboardingStep7Schema),
+    defaultValues: { address: '', city: '', state: '', country: '', zipCode: '', location: undefined }
   })
 
   const mapContainerRef = useRef<HTMLDivElement | null>(null)
@@ -47,63 +40,55 @@ export default function HobbyhureOnboardingStep7() {
   useEffect(() => {
     let active = true
     ;(async () => {
-      if (!isEditMode) return
       try {
-        const res = await fetch('/api/onboarding/hobbyhure/step-7')
+        const res = await fetch('/api/onboarding/agency/step-7')
         if (!res.ok) return
         const data = await res.json()
         if (!active) return
-
         reset({
           address: data.address || '',
           city: data.city || '',
           state: data.state || '',
           country: data.country || '',
           zipCode: data.zipCode || '',
-          location: data.location || undefined
+          location: data.location || undefined,
         })
-
         if (data?.location && mapsReady) {
           initMap(data.location.lat, data.location.lng)
         }
-      } catch (e) {
-        // ignore
-      }
+      } catch {}
     })()
     return () => { active = false }
-  }, [reset, mapsReady, isEditMode])
+  }, [reset, mapsReady])
 
   const onMapsLoaded = () => {
     setMapsReady(true)
     initAutocomplete()
   }
 
+  // If Google Maps was already loaded (e.g. from a previous page), initialize immediately
+  useEffect(() => {
+    if ((window as any).google?.maps) {
+      onMapsLoaded()
+    }
+  }, [])
+
   function initMap(lat: number, lng: number) {
     if (!mapContainerRef.current) return
     const center = { lat, lng }
     const g = (window as any).google
     const usesAdvancedMarker = !!g?.maps?.marker?.AdvancedMarkerElement
-
     if (!mapRef.current) {
-      mapRef.current = new g.maps.Map(mapContainerRef.current, {
-        center,
-        zoom: 14,
-        mapId: 'onboarding-step7',
-        disableDefaultUI: true
-      })
+      mapRef.current = new g.maps.Map(mapContainerRef.current, { center, zoom: 14, mapId: 'onboarding-agency-step6', disableDefaultUI: true })
     } else {
       mapRef.current.setCenter(center)
     }
-
     if (usesAdvancedMarker) {
       if (markerRef.current) markerRef.current.map = null as any
-      markerRef.current = new g.maps.marker.AdvancedMarkerElement({
-        map: mapRef.current,
-        position: center
-      })
+      markerRef.current = new g.maps.marker.AdvancedMarkerElement({ map: mapRef.current, position: center })
     } else {
       // @ts-ignore
-      const m = new g.maps.Marker({ position: center, map: mapRef.current })
+      const _ = new g.maps.Marker({ position: center, map: mapRef.current })
     }
   }
 
@@ -111,15 +96,12 @@ export default function HobbyhureOnboardingStep7() {
     if (!addressInputRef.current || !(window as any).google?.maps?.places) return
     if (autocompleteRef.current) return
     const g = (window as any).google
-    const ac = new g.maps.places.Autocomplete(addressInputRef.current as HTMLInputElement, {
-      fields: ['formatted_address', 'geometry', 'place_id', 'address_components']
-    })
+    const ac = new g.maps.places.Autocomplete(addressInputRef.current as HTMLInputElement, { fields: ['formatted_address', 'geometry', 'place_id', 'address_components'] })
     autocompleteRef.current = ac
     ac.addListener('place_changed', () => {
       const place = ac.getPlace()
       if (!place || !place.geometry || !place.geometry.location) return
       const location = place.geometry.location
-
       const comps = place.address_components || []
       let city = ''
       let zip = ''
@@ -133,16 +115,14 @@ export default function HobbyhureOnboardingStep7() {
         if (c.types.includes('country')) country = c.long_name
         if (c.types.includes('administrative_area_level_1')) state = c.long_name
       }
-
       const lat = typeof location.lat === 'function' ? location.lat() : (location as any).lat
       const lng = typeof location.lng === 'function' ? location.lng() : (location as any).lng
-
       setValue('address', place.formatted_address || addressInputRef.current?.value || '')
       setValue('city', city)
       setValue('zipCode', zip)
       setValue('country', country)
       setValue('state', state)
-
+      setValue('location', { lat, lng, placeId: place.place_id, formattedAddress: place.formatted_address })
       initMap(lat, lng)
     })
   }
@@ -151,11 +131,7 @@ export default function HobbyhureOnboardingStep7() {
     setIsLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/onboarding/hobbyhure/step-7', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values)
-      })
+      const res = await fetch('/api/onboarding/agency/step-7', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values) })
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
         throw new Error(data?.error || 'Speichern fehlgeschlagen')
@@ -171,11 +147,7 @@ export default function HobbyhureOnboardingStep7() {
   return (
     <div className="min-h-screen bg-white">
       {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
-        <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places,marker&language=de`}
-          strategy="afterInteractive"
-          onLoad={onMapsLoaded}
-        />
+        <Script src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places,marker&language=de`} strategy="afterInteractive" onLoad={onMapsLoaded} />
       )}
       <nav className="absolute top-0 w-full z-50 bg-transparent">
         <div className="max-w-7xl mx-auto px-6 py-6">
@@ -184,9 +156,7 @@ export default function HobbyhureOnboardingStep7() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               ZURÜCK ZUM ONBOARDING
             </Link>
-            <div className="text-sm font-light tracking-widest text-gray-600">
-              HOBBYHURE-EINRICHTUNG – SCHRITT 7/7
-            </div>
+            <div className="text-sm font-light tracking-widest text-gray-600">AGENTUR-EINRICHTUNG – SCHRITT 6/6</div>
           </div>
         </div>
       </nav>
@@ -196,34 +166,22 @@ export default function HobbyhureOnboardingStep7() {
           <div className="text-center mb-16">
             <h1 className="text-5xl font-thin tracking-wider text-gray-800 mb-6">STANDORT</h1>
             <div className="w-24 h-px bg-pink-500 mx-auto mb-8"></div>
-            <p className="text-lg font-light tracking-wide text-gray-600 max-w-md mx-auto mb-4">
-              Adresse, Stadt, Land – Schritt 7 von 7
-            </p>
-            <div className="flex justify-center">
-              <Badge className="bg-pink-500 text-white font-light tracking-widest px-4 py-1 rounded-none">SCHRITT 7/7</Badge>
-            </div>
+            <p className="text-lg font-light tracking-wide text-gray-600 max-w-md mx-auto mb-4">Adresse, Stadt, Land – Schritt 6 von 6</p>
+            <div className="flex justify-center"><Badge className="bg-pink-500 text-white font-light tracking-widest px-4 py-1 rounded-none">SCHRITT 6/6</Badge></div>
           </div>
 
-          <form id="step7-form" data-step7 onSubmit={handleSubmit(onSubmit)} className="p-6 border bg-gray-50 text-sm text-gray-700">
+          <form id="agency-step6-form" onSubmit={handleSubmit(onSubmit)} className="p-6 border bg-gray-50 text-sm text-gray-700">
             <div className="grid gap-4">
               <div>
                 <Label className="text-xs font-light tracking-widest text-gray-700">ADRESSE</Label>
                 <Input
                   {...register('address')}
-                  ref={(el) => {
-                    addressInputRef.current = el
-                    // @ts-ignore
-                    register('address').ref?.(el)
-                  }}
+                  ref={(el) => { addressInputRef.current = el; /* @ts-ignore */ register('address').ref?.(el) }}
                   placeholder="Straße, Hausnummer, Ort"
                   className="rounded-none mt-2"
                 />
-                {errors.address && (
-                  <p className="text-xs font-light text-red-600 mt-1">{errors.address.message as string}</p>
-                )}
-                {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (
-                  <p className="text-xs text-amber-600 mt-1">Hinweis: Setze NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in .env.local, um Autocomplete zu aktivieren.</p>
-                )}
+                {errors.address && (<p className="text-xs font-light text-red-600 mt-1">{errors.address.message as string}</p>)}
+                {!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && (<p className="text-xs text-amber-600 mt-1">Hinweis: Setze NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in .env.local, um Autocomplete zu aktivieren.</p>)}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -250,29 +208,13 @@ export default function HobbyhureOnboardingStep7() {
                 <p className="text-xs font-light text-gray-500 mt-2">Wähle eine Adresse über die Suche aus, um die Karte zu zentrieren.</p>
               </div>
 
-              {error && (
-                <div className="text-xs font-light text-red-600 mt-2">{error}</div>
-              )}
+              {error && (<div className="text-xs font-light text-red-600 mt-2">{error}</div>)}
             </div>
           </form>
 
           <div className="flex flex-col sm:flex-row gap-6 pt-8">
-            <Button 
-              type="button"
-              variant="outline"
-              onClick={() => router.push(addEditParam('/onboarding'))}
-              className="flex-1 border-gray-300 text-gray-600 font-light tracking-widest py-4 text-sm uppercase hover:border-pink-500 hover:text-pink-500 rounded-none"
-            >
-              Zur Übersicht
-            </Button>
-            <Button 
-              type="submit"
-              form="step7-form"
-              disabled={isLoading}
-              className="flex-1 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white font-light tracking-widest py-4 text-sm uppercase rounded-none"
-            >
-              {isLoading ? 'Speichern …' : 'Fertig & Zur Übersicht'}
-            </Button>
+            <Button type="button" variant="outline" onClick={() => router.push(addEditParam('/onboarding/agency/step-5'))} className="flex-1 border-gray-300 text-gray-600 font-light tracking-widest py-4 text-sm uppercase hover:border-pink-500 hover:text-pink-500 rounded-none">Zurück</Button>
+            <Button type="submit" form="agency-step6-form" disabled={isLoading} className="flex-1 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white font-light tracking-widest py-4 text-sm uppercase rounded-none">{isLoading ? 'Speichern …' : 'Fertig & Zur Übersicht'}</Button>
           </div>
         </div>
       </div>
