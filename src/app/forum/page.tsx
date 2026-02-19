@@ -4,6 +4,7 @@ import Footer from '@/components/homepage/Footer'
 import ForumHero from '@/components/homepage/ForumHero'
 import { prisma } from '@/lib/prisma'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getAvatarUrl } from '@/utils/avatar'
 import * as Icons from 'lucide-react'
 import { Info } from 'lucide-react'
 
@@ -40,7 +41,7 @@ export default async function ForumHomePage() {
             orderBy: { createdAt: 'desc' },
             take: 1,
             include: {
-              author: { select: { id: true, email: true, profile: { select: { displayName: true, avatar: true } } } },
+              author: { select: { id: true, email: true, userType: true, profile: { select: { displayName: true, avatar: true } } } },
               posts: { orderBy: { createdAt: 'asc' }, take: 1, select: { content: true } },
             }
           },
@@ -153,17 +154,14 @@ export default async function ForumHomePage() {
                         {f.threads?.[0] && (
                           <div className="flex items-center gap-3">
                             <Avatar className="h-6 w-6 bg-gray-200">
-                              {f.threads[0].author?.profile?.avatar ? (
-                                <AvatarImage src={f.threads[0].author.profile.avatar} alt="avatar" />
-                              ) : (
-                                <AvatarFallback className="text-[10px] font-light tracking-widest text-gray-700">
-                                  {(f.threads[0].author?.profile?.displayName || f.threads[0].author?.email || '?')
-                                    .split(/\s+/)
-                                    .map((s: string) => s.charAt(0).toUpperCase())
-                                    .slice(0, 2)
-                                    .join('')}
-                                </AvatarFallback>
-                              )}
+                              <AvatarImage src={getAvatarUrl(f.threads[0].author?.profile?.avatar, f.threads[0].author?.userType)} alt="avatar" />
+                              <AvatarFallback className="text-[10px] font-light tracking-widest text-gray-700">
+                                {(f.threads[0].author?.profile?.displayName || f.threads[0].author?.email || '?')
+                                  .split(/\s+/)
+                                  .map((s: string) => s.charAt(0).toUpperCase())
+                                  .slice(0, 2)
+                                  .join('')}
+                              </AvatarFallback>
                             </Avatar>
                             <div className="min-w-0">
                               <div className="text-sm text-gray-900 truncate group-hover:text-pink-600">{f.threads[0].title}</div>

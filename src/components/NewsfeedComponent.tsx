@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getAvatarUrl } from '@/utils/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import { 
   Heart, 
@@ -102,16 +103,7 @@ export default function NewsfeedComponent() {
     } catch {}
   }
 
-  // Normalisiert Avatar-Pfade aus der API (z. B. fehlender führender "/")
-  const normalizeAvatar = (url?: string | null): string | undefined => {
-    if (!url) return undefined
-    const trimmed = url.trim()
-    if (!trimmed) return undefined
-    // Externe URLs unverändert lassen
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed
-    // Sicherstellen, dass relative Pfade mit "/" beginnen
-    return trimmed.startsWith('/') ? trimmed : `/${trimmed}`
-  }
+  // Avatar-Normalisierung jetzt in @/utils/avatar (getAvatarUrl)
 
   useEffect(() => {
     fetchPosts()
@@ -394,7 +386,7 @@ export default function NewsfeedComponent() {
           {!showCreatePost ? (
             <div className="flex items-center space-x-6">
               <Avatar className="h-12 w-12">
-                <AvatarImage src={normalizeAvatar(myAvatar)} alt="Mein Avatar" />
+                <AvatarImage src={getAvatarUrl(myAvatar, session?.user?.userType)} alt="Mein Avatar" />
                 <AvatarFallback className="text-sm font-light tracking-widest bg-gray-100">
                   {session?.user?.email?.charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -419,7 +411,7 @@ export default function NewsfeedComponent() {
             <div className="space-y-6">
               <div className="flex items-center space-x-4">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage src={normalizeAvatar(myAvatar)} alt="Mein Avatar" />
+                  <AvatarImage src={getAvatarUrl(myAvatar, session?.user?.userType)} alt="Mein Avatar" />
                   <AvatarFallback className="text-sm font-light tracking-widest bg-gray-100">
                     {session?.user?.email?.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -522,7 +514,7 @@ export default function NewsfeedComponent() {
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center space-x-4">
                     <Avatar className="h-12 w-12 object-cover">
-                      <AvatarImage src={normalizeAvatar(post.author.profile?.avatar)} alt={`Avatar von ${displayName}`} />
+                      <AvatarImage src={getAvatarUrl(post.author.profile?.avatar, post.author.userType)} alt={`Avatar von ${displayName}`} />
                       <AvatarFallback className="text-sm font-light tracking-widest bg-gray-100">
                         {displayName.charAt(0).toUpperCase()}
                       </AvatarFallback>
@@ -792,7 +784,7 @@ export default function NewsfeedComponent() {
                       {post.comments.slice(0, 2).map((comment: any) => (
                         <div key={comment.id} className={`flex items-start space-x-3 ${comment.parentId ? 'pl-8' : ''}`}>
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={normalizeAvatar(comment.author.profile?.avatar)} alt={`Avatar von ${comment.author.profile?.displayName || comment.author.email}`} />
+                            <AvatarImage src={getAvatarUrl(comment.author.profile?.avatar, comment.author.userType)} alt={`Avatar von ${comment.author.profile?.displayName || comment.author.email}`} />
                             <AvatarFallback className="text-xs font-light tracking-widest bg-gray-100">
                               {(comment.author.profile?.displayName || comment.author.email).charAt(0).toUpperCase()}
                             </AvatarFallback>

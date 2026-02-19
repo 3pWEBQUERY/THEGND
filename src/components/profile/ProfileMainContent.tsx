@@ -7,7 +7,7 @@ import ProfileViewSection from '@/components/profile/ProfileViewSection'
 import ProfileTabs from '@/components/profile/ProfileTabs'
 import ProfileOverlays from '@/components/profile/ProfileOverlays'
 import ProfileBannerDrawer from '@/components/profile/ProfileBannerDrawer'
- 
+import { getAvatarUrl } from '@/utils/avatar'
 
 export default function ProfileMainContent(props: {
 
@@ -142,7 +142,7 @@ export default function ProfileMainContent(props: {
       <div className="max-w-7xl mx-auto space-y-8 overflow-x-hidden">
         <ProfileHeader
           isOwnProfile={isOwnProfile}
-          avatarUrl={profile?.avatar}
+          avatarUrl={getAvatarUrl(profile?.avatar, userType)}
           displayName={displayName}
           avatarSize={avatarSize}
           onEdit={onEdit}

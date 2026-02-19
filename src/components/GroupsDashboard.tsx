@@ -5,6 +5,7 @@ import Link from 'next/link'
 import CreateGroupForm from '@/components/groups/CreateGroupForm'
 import GroupSettingsForm from '@/components/groups/GroupSettingsForm'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { getAvatarUrl } from '@/utils/avatar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type GroupSummary = {
@@ -299,7 +300,7 @@ export default function GroupsDashboard() {
                   {members.map((m) => (
                     <div key={m.id} className="p-4 flex items-center gap-3">
                       <Avatar className="size-7">
-                        <AvatarImage src={(m.user as any)?.profile?.avatar ?? undefined} alt="avatar" />
+                        <AvatarImage src={getAvatarUrl((m.user as any)?.profile?.avatar, (m.user as any)?.userType)} alt="avatar" />
                         <AvatarFallback className="text-[10px]">
                           {(m.user.profile?.displayName || m.user.email || '?').charAt(0).toUpperCase()}
                         </AvatarFallback>

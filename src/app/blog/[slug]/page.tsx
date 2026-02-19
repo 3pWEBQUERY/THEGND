@@ -3,9 +3,11 @@ import Footer from '@/components/homepage/Footer'
 import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { getSeoOverride, mergeMetadata } from '@/lib/seo'
 import { renderMarkdownToSafeHtml } from '@/lib/markdown'
 import Link from 'next/link'
 import { getProfileUrl } from '@/lib/validations'
+import { getAvatarUrl } from '@/utils/avatar'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,9 +19,9 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
   try {
-    const post = await (prisma as any).blogPost.findUnique({ where: { slug }, select: { title: true, excerpt: true, coverImage: true, published: true } })
-    if (!post || !post.published) return { title: 'Blog – THEGND' }
-    return {
+    const post = await (prisma as any).blogPost.findUnique({ where: { slug }, select: { title: true, excerpt: true, coverImage: true, published: true, blocked: true } })
+    if (!post || !post.published || post.blocked) return { title: 'Blog – THEGND' }
+    let meta: Metadata = {
       title: post.title,
       description: post.excerpt || undefined,
       openGraph: {
@@ -34,6 +36,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         images: post.coverImage ? [post.coverImage] : undefined,
       },
     }
+    // Apply admin SEO page override
+    const override = await getSeoOverride(`/blog/${slug}`)
+    meta = mergeMetadata(meta, override)
+    return meta
   } catch {
     return { title: 'Blog – THEGND' }
   }
@@ -53,12 +59,13 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
       },
     },
   })
-  if (!post || !post.published) return notFound()
+  if (!post || !post.published || post.blocked) return notFound()
 
   // Fetch related posts: same category first, then recent, excluding current
   const relatedPosts = await (prisma as any).blogPost.findMany({
     where: {
       published: true,
+      blocked: false,
       slug: { not: slug },
     },
     orderBy: [{ publishedAt: 'desc' }],
@@ -145,20 +152,12 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
             })}
             className="mt-6 flex items-center gap-4 group"
           >
-            {post.author?.profile?.avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={post.author.profile.avatar}
-                alt={post.author?.profile?.displayName || 'Autor'}
-                className="h-16 w-16 object-cover border border-gray-200 group-hover:border-pink-400 transition-colors"
-              />
-            ) : (
-              <div className="h-16 w-16 bg-pink-100 text-pink-700 grid place-items-center border border-gray-200 group-hover:border-pink-400 transition-colors">
-                <span className="text-lg font-medium">
-                  {(post.author?.profile?.displayName || 'A').slice(0, 1).toUpperCase()}
-                </span>
-              </div>
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={getAvatarUrl(post.author?.profile?.avatar, post.author?.userType)}
+              alt={post.author?.profile?.displayName || 'Autor'}
+              className="h-16 w-16 object-cover border border-gray-200 group-hover:border-pink-400 transition-colors"
+            />
             <div>
               <div className="text-[11px] uppercase tracking-widest text-gray-500">Autor</div>
               <div className="text-base font-medium text-gray-900 group-hover:text-pink-600 transition-colors">

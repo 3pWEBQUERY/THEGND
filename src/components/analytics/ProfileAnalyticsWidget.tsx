@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import * as Tooltip from '@radix-ui/react-tooltip'
+import { getAvatarUrl } from '@/utils/avatar'
 import { SiGooglechrome, SiFirefoxbrowser, SiSafari, SiOpera, SiBrave } from 'react-icons/si'
 
 type Summary = {
@@ -317,12 +318,8 @@ export default function ProfileAnalyticsWidget() {
                             {r.registered && r.visitor ? (
                               <>
                                 <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
-                                  {r.visitor.avatar ? (
-                                    // eslint-disable-next-line @next/next/no-img-element
-                                    <img src={r.visitor.avatar} alt={r.visitor.displayName || 'Avatar'} className="h-full w-full object-cover" />
-                                  ) : (
-                                    <span className="text-[10px] text-gray-500">{(r.visitor.displayName || 'Nutzer').charAt(0).toUpperCase()}</span>
-                                  )}
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={getAvatarUrl(r.visitor.avatar)} alt={r.visitor.displayName || 'Avatar'} className="h-full w-full object-cover" />
                                 </div>
                                 <div className="min-w-0">
                                   <div className="font-medium truncate max-w-[200px]">{r.visitor.displayName || 'Registrierter Besucher'}</div>

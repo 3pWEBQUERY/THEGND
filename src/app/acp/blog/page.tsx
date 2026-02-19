@@ -8,6 +8,7 @@ export default function AcpBlogListPage() {
   const [q, setQ] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
 
   const load = async (query = '') => {
     setLoading(true)
@@ -21,6 +22,22 @@ export default function AcpBlogListPage() {
       setError('Kein Zugriff oder Laden fehlgeschlagen')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const toggleBlock = async (id: string, currentBlocked: boolean) => {
+    setTogglingId(id)
+    try {
+      const res = await fetch(`/api/acp/blog/posts/${id}/block`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blocked: !currentBlocked }),
+      })
+      if (res.ok) {
+        setPosts((prev) => prev.map((p) => p.id === id ? { ...p, blocked: !currentBlocked } : p))
+      }
+    } finally {
+      setTogglingId(null)
     }
   }
 
@@ -47,24 +64,38 @@ export default function AcpBlogListPage() {
                 <th className="text-left font-medium px-4 py-2">Titel</th>
                 <th className="text-left font-medium px-4 py-2">Slug</th>
                 <th className="text-left font-medium px-4 py-2">Status</th>
+                <th className="text-left font-medium px-4 py-2">Gesperrt</th>
                 <th className="text-left font-medium px-4 py-2">Aktualisiert</th>
                 <th className="text-left font-medium px-4 py-2">Aktion</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {posts.map((p) => (
-                <tr key={p.id}>
+                <tr key={p.id} className={p.blocked ? 'bg-red-50' : ''}>
                   <td className="px-4 py-2 text-gray-800">{p.title}</td>
                   <td className="px-4 py-2 text-gray-600">{p.slug}</td>
                   <td className="px-4 py-2">{p.published ? <span className="text-green-600 text-xs">veröffentlicht</span> : <span className="text-gray-500 text-xs">Entwurf</span>}</td>
-                  <td className="px-4 py-2 text-gray-600">{new Date(p.updatedAt).toLocaleString()}</td>
                   <td className="px-4 py-2">
+                    {p.blocked
+                      ? <span className="text-red-600 text-xs font-medium">GESPERRT</span>
+                      : <span className="text-gray-400 text-xs">—</span>
+                    }
+                  </td>
+                  <td className="px-4 py-2 text-gray-600">{new Date(p.updatedAt).toLocaleString()}</td>
+                  <td className="px-4 py-2 flex items-center gap-3">
                     <Link href={`/acp/blog/${p.id}`} className="text-xs uppercase tracking-widest text-pink-600 hover:underline">Bearbeiten</Link>
+                    <button
+                      onClick={() => toggleBlock(p.id, !!p.blocked)}
+                      disabled={togglingId === p.id}
+                      className={`text-xs uppercase tracking-widest ${p.blocked ? 'text-green-600 hover:underline' : 'text-red-600 hover:underline'}`}
+                    >
+                      {togglingId === p.id ? '…' : (p.blocked ? 'Entsperren' : 'Sperren')}
+                    </button>
                   </td>
                 </tr>
               ))}
               {posts.length === 0 && (
-                <tr><td className="px-4 py-6 text-sm text-gray-500" colSpan={5}>Keine Einträge</td></tr>
+                <tr><td className="px-4 py-6 text-sm text-gray-500" colSpan={6}>Keine Einträge</td></tr>
               )}
             </tbody>
           </table>

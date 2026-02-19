@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
+import { getSeoOverride, mergeMetadata, getUserSeoSettings, mergeUserSeoMetadata } from '@/lib/seo'
 import MinimalistNavigation from '@/components/homepage/MinimalistNavigation'
 import Footer from '@/components/homepage/Footer'
 import { Globe, Phone, BadgeCheck } from 'lucide-react'
@@ -473,7 +474,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const description = user.profile.description || 'Club- oder Studio-Profil auf The GND.'
   const slug = (name || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
   const ogImage = getPrimaryImage(user.profile) || undefined
-  return {
+  let meta: Metadata = {
     title,
     description,
     alternates: { canonical: `https://thegnd.com/club-studio/${id}/${slug}` },
@@ -489,4 +490,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       description,
     },
   }
+  // Apply admin SEO page override
+  const override = await getSeoOverride(`/club-studio/${id}/${slug}`)
+  meta = mergeMetadata(meta, override)
+  // Apply user SEO addon settings
+  const userSeo = await getUserSeoSettings(user.id)
+  meta = mergeUserSeoMetadata(meta, userSeo)
+  return meta
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Search, Users, UserPlus, UserMinus, Heart, MessageCircle, ChevronDown } from 'lucide-react'
+import { getAvatarUrl } from '@/utils/avatar'
 import { getUserTypeDisplayName } from '@/lib/validations'
 
 function slugify(input: string): string {
@@ -222,17 +223,12 @@ export default function SocialComponent() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <Link href={getProfileHref(user)} className="flex items-start sm:items-center space-x-3 flex-1 min-w-0">
           <div className="h-12 w-12 bg-gray-100 flex items-center justify-center flex-shrink-0">
-            {user.profile?.avatar ? (
-              <img 
-                src={user.profile.avatar} 
-                alt="Avatar" 
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="text-sm font-light tracking-widest text-gray-600">
-                {user.email.charAt(0).toUpperCase()}
-              </span>
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src={getAvatarUrl(user.profile?.avatar, user.userType)} 
+              alt="Avatar" 
+              className="h-full w-full object-cover"
+            />
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-sm font-light tracking-wide text-gray-800 truncate hover:text-pink-500 transition-colors">

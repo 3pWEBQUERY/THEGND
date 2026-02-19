@@ -1,7 +1,9 @@
 import Link from 'next/link'
 import CreateUserForm from '@/components/admin/CreateUserForm'
 import { ActionButton } from '@/components/admin/ActionButton'
+import { EditUserDialog } from '@/components/admin/EditUserDialog'
 import { prisma } from '@/lib/prisma'
+import { getAvatarUrl } from '@/utils/avatar'
 import AdminSelect from '@/components/admin/AdminSelect'
 
 export const dynamic = 'force-dynamic'
@@ -45,8 +47,9 @@ export default async function AdminUsersPage({
         email: true,
         userType: true,
         isActive: true,
+        lastSeenAt: true,
         createdAt: true,
-        profile: { select: { id: true } },
+        profile: { select: { id: true, avatar: true } },
       },
     }),
   ])
@@ -93,6 +96,7 @@ export default async function AdminUsersPage({
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
+              <th className="text-left px-4 py-2 text-gray-500 font-medium w-14"></th>
               <th className="text-left px-4 py-2 text-gray-500 font-medium">Email</th>
               <th className="text-left px-4 py-2 text-gray-500 font-medium">Typ</th>
               <th className="text-left px-4 py-2 text-gray-500 font-medium">Aktiv</th>
@@ -101,8 +105,19 @@ export default async function AdminUsersPage({
             </tr>
           </thead>
           <tbody>
-            {users.map(u => (
+            {users.map(u => {
+              const isOnline = u.lastSeenAt ? (Date.now() - new Date(u.lastSeenAt).getTime()) < 5 * 60 * 1000 : false
+              return (
               <tr key={u.id} className="border-t border-gray-100">
+                <td className="px-4 py-3">
+                  <div className="relative w-9 h-9">
+                    <img src={getAvatarUrl(u.profile?.avatar, u.userType)} alt="" className="w-9 h-9 rounded-full object-cover" />
+                    <span
+                      className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}
+                      title={isOnline ? 'Online' : 'Offline'}
+                    />
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-gray-900">{u.email}</td>
                 <td className="px-4 py-3 text-gray-700">{u.userType}</td>
                 <td className="px-4 py-3">
@@ -112,30 +127,39 @@ export default async function AdminUsersPage({
                 </td>
                 <td className="px-4 py-3 text-gray-500">{new Date(u.createdAt).toLocaleString()}</td>
                 <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-1">
                     {u.userType !== 'ESCORT' && (
                       <ActionButton
-                        label="Zu ESCORT"
+                        label=""
+                        icon="userCog"
+                        tooltip="Zu ESCORT"
                         endpoint={`/api/acp/users/${u.id}`}
                         method="PATCH"
                         body={{ userType: 'ESCORT' }}
                       />
                     )}
                     <ActionButton
-                      label={u.isActive ? 'Sperren' : 'Entsperren'}
+                      label=""
+                      icon={u.isActive ? 'ban' : 'check'}
+                      tooltip={u.isActive ? 'Sperren' : 'Entsperren'}
                       endpoint={`/api/acp/users/${u.id}`}
                       method="PATCH"
                       body={{ isActive: !u.isActive }}
                     />
+                    <EditUserDialog user={{ id: u.id, email: u.email, userType: u.userType, isActive: u.isActive }} />
                     {u.userType === 'ESCORT' && !u.profile?.id && (
                       <ActionButton
-                        label="Profil anlegen"
+                        label=""
+                        icon="plus"
+                        tooltip="Profil anlegen"
                         endpoint={`/api/acp/escorts/${u.id}/profile`}
                         method="POST"
                       />
                     )}
                     <ActionButton
-                      label="Löschen"
+                      label=""
+                      icon="trash"
+                      tooltip="Löschen"
                       endpoint={`/api/acp/users/${u.id}`}
                       method="DELETE"
                       confirm="User wirklich löschen?"
@@ -144,7 +168,8 @@ export default async function AdminUsersPage({
                   </div>
                 </td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
       </div>

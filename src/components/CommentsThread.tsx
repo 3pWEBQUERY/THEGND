@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getAvatarUrl } from '@/utils/avatar'
 import { Textarea } from '@/components/ui/textarea'
 
 type Author = {
   email: string
+  userType?: string
   profile?: { displayName?: string | null; avatar?: string | null }
 }
 
@@ -24,13 +26,7 @@ type CommentsThreadProps = {
   initialReplyToId?: string
 }
 
-function normalize(url?: string | null): string | undefined {
-  if (!url) return undefined
-  const t = url.trim()
-  if (!t) return undefined
-  if (t.startsWith('http://') || t.startsWith('https://')) return t
-  return t.startsWith('/') ? t : `/${t}`
-}
+// Avatar-Normalisierung jetzt in @/utils/avatar (getAvatarUrl)
 
 export default function CommentsThread({ postId, requireAuth, onCountChange, initialReplyToId }: CommentsThreadProps) {
   const { data: session } = useSession()
@@ -192,7 +188,7 @@ export default function CommentsThread({ postId, requireAuth, onCountChange, ini
       <div key={comment.id} className="space-y-2">
         <div className="flex items-start space-x-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={normalize(comment.author.profile?.avatar)} alt={`Avatar von ${displayName}`} />
+            <AvatarImage src={getAvatarUrl(comment.author.profile?.avatar, comment.author.userType)} alt={`Avatar von ${displayName}`} />
             <AvatarFallback className="text-xs font-light tracking-widest bg-gray-100">
               {displayName.charAt(0).toUpperCase()}
             </AvatarFallback>

@@ -3,6 +3,7 @@ import Footer from '@/components/homepage/Footer'
 import { prisma } from '@/lib/prisma'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import { getSeoOverride, mergeMetadata, getUserSeoSettings, mergeUserSeoMetadata } from '@/lib/seo'
 import MessageButton from '@/components/MessageButton'
 import GalleryGrid from '@/components/GalleryGrid'
 import Tabs from '@/components/Tabs'
@@ -328,11 +329,11 @@ async function getEscort(id: string) {
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string; slug: string }> }): Promise<Metadata> {
-  const { id } = await params
+  const { id, slug } = await params
   const data = await getEscort(id)
   const title = data?.name ? `${data.name} | Escort Profil` : 'Escort Profil'
   const description = data?.slogan || data?.description || undefined
-  return {
+  let meta: Metadata = {
     title,
     description,
     openGraph: {
@@ -341,6 +342,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       images: data?.image ? [data.image] : [],
     },
   }
+  // Apply admin SEO page override
+  const override = await getSeoOverride(`/escorts/${id}/${slug}`)
+  meta = mergeMetadata(meta, override)
+  // Apply user SEO addon settings (if profile owner has SEO addon)
+  if (data) {
+    const userSeo = await getUserSeoSettings(id)
+    meta = mergeUserSeoMetadata(meta, userSeo)
+  }
+  return meta
 }
 
 export default async function EscortProfilePage({ params, searchParams }: { params: Promise<{ id: string; slug: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> }) {

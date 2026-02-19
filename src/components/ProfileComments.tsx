@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { MessageSquare, Send, EyeOff, Eye, Trash2, Edit3, X } from 'lucide-react'
 import { FaStar, FaRegStar } from 'react-icons/fa6'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { getAvatarUrl } from '@/utils/avatar'
 import RatingDonut from '@/components/RatingDonut'
 
 type CommentItem = {
@@ -232,13 +233,10 @@ export default function ProfileComments({ targetUserId }: ProfileCommentsProps) 
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0">
                   <Avatar className="size-6 bg-gray-200">
-                    {c.author?.profile?.avatar ? (
-                      <AvatarImage src={c.author.profile.avatar} alt="avatar" />
-                    ) : (
-                      <AvatarFallback className="text-[10px] text-gray-600">
-                        {(c.author?.profile?.displayName?.charAt(0) || c.author?.email?.charAt(0) || '?').toUpperCase()}
-                      </AvatarFallback>
-                    )}
+                    <AvatarImage src={getAvatarUrl(c.author?.profile?.avatar, c.author?.userType)} alt="avatar" />
+                    <AvatarFallback className="text-[10px] text-gray-600">
+                      {(c.author?.profile?.displayName?.charAt(0) || c.author?.email?.charAt(0) || '?').toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="text-xs text-gray-800 truncate flex items-center gap-2">
                     <span className="truncate">{c.author?.profile?.displayName || c.author?.email || 'Nutzer'}</span>
@@ -332,13 +330,10 @@ export default function ProfileComments({ targetUserId }: ProfileCommentsProps) 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 min-w-0">
                       <Avatar className="size-6 bg-gray-200">
-                        {r.author?.profile?.avatar ? (
-                          <AvatarImage src={r.author.profile.avatar} alt="avatar" />
-                        ) : (
-                          <AvatarFallback className="text-[10px] text-gray-600">
-                            {(r.author?.profile?.displayName?.charAt(0) || r.author?.email?.charAt(0) || '?').toUpperCase()}
-                          </AvatarFallback>
-                        )}
+                        <AvatarImage src={getAvatarUrl(r.author?.profile?.avatar, r.author?.userType)} alt="avatar" />
+                        <AvatarFallback className="text-[10px] text-gray-600">
+                          {(r.author?.profile?.displayName?.charAt(0) || r.author?.email?.charAt(0) || '?').toUpperCase()}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="text-xs text-gray-800 truncate flex items-center gap-2">
                         <span className="truncate">{r.author?.profile?.displayName || r.author?.email || 'Nutzer'}</span>

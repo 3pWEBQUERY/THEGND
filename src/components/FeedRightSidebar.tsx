@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getAvatarUrl } from '@/utils/avatar'
 
 interface FollowerUser {
   id: string
@@ -45,13 +46,7 @@ interface SuggestedUser {
   isFollowing: boolean
 }
 
-function normalizeAvatar(url?: string | null): string | undefined {
-  if (!url) return undefined
-  const trimmed = url.trim()
-  if (!trimmed) return undefined
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed
-  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`
-}
+// Avatar-Normalisierung jetzt in @/utils/avatar (getAvatarUrl)
 
 export default function FeedRightSidebar() {
   const { data: session } = useSession()
@@ -201,7 +196,7 @@ export default function FeedRightSidebar() {
                 return (
                 <Link key={u.id} href={`/profile/${u.id}`} className="group flex flex-col items-center gap-2 p-2 border border-transparent hover:border-pink-500 hover:bg-pink-50 transition-colors rounded-none">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={normalizeAvatar(u.profile?.avatar)} alt={label} />
+                    <AvatarImage src={getAvatarUrl(u.profile?.avatar)} alt={label} />
                     <AvatarFallback className="text-xs bg-gray-100">
                       {label.charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -233,7 +228,7 @@ export default function FeedRightSidebar() {
                 <div key={u.id} className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={normalizeAvatar(u.profile?.avatar)} alt={label} />
+                      <AvatarImage src={getAvatarUrl(u.profile?.avatar)} alt={label} />
                       <AvatarFallback className="text-xs bg-gray-100">{label.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <div className="text-xs text-gray-800 truncate">{label}</div>
@@ -284,7 +279,7 @@ export default function FeedRightSidebar() {
               {recentCommenters.map((c, idx) => (
                 <div key={idx} className="flex items-start gap-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={normalizeAvatar(c.avatar)} alt={c.name} />
+                    <AvatarImage src={getAvatarUrl(c.avatar)} alt={c.name} />
                     <AvatarFallback className="text-xs bg-gray-100">{c.name.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
@@ -348,7 +343,7 @@ export default function FeedRightSidebar() {
               {recentLikers.map((l, idx) => (
                 <div key={idx} className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={normalizeAvatar(l.avatar)} alt={l.label} />
+                    <AvatarImage src={getAvatarUrl(l.avatar)} alt={l.label} />
                     <AvatarFallback className="text-xs bg-gray-100">{l.label.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div className="text-xs text-gray-800 truncate">{l.label}</div>

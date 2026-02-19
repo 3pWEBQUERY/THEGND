@@ -85,23 +85,7 @@ export default function AdminSettingsPage() {
     }
   }
 
-  const saveSEO = async () => {
-    setMessage(null)
-    try {
-      await upsertMany({
-        'seo.titleTemplate': map['seo.titleTemplate'] || '',
-        'seo.metaDescription': map['seo.metaDescription'] || '',
-        'seo.keywords': map['seo.keywords'] || '',
-        'seo.ogImageUrl': map['seo.ogImageUrl'] || '',
-        'seo.robotsIndex': map['seo.robotsIndex'] || 'true',
-        'seo.sitemapEnabled': map['seo.sitemapEnabled'] || 'true',
-      })
-      setMessage('Gespeichert')
-      await reload()
-    } catch {
-      setMessage('Speichern fehlgeschlagen')
-    }
-  }
+
 
   const handleUploadTo = async (targetKey: string, files: FileList | null) => {
     if (!files || files.length === 0) return
@@ -217,12 +201,12 @@ export default function AdminSettingsPage() {
               <div>
                 <Label className="text-xs uppercase tracking-widest text-gray-800">Hauptsprache</Label>
                 <div className="mt-2">
-                  <Select value={map['site.primaryLocale'] || ''} onValueChange={(v) => setField('site.primaryLocale', v)}>
+                  <Select value={map['site.primaryLocale'] || '__NONE__'} onValueChange={(v) => setField('site.primaryLocale', v === '__NONE__' ? '' : v)}>
                     <SelectTrigger className="w-full rounded-none">
                       <SelectValue placeholder="– wählen –" />
                     </SelectTrigger>
                     <SelectContent className="rounded-none">
-                      <SelectItem value="">– wählen –</SelectItem>
+                      <SelectItem value="__NONE__">– wählen –</SelectItem>
                       {locales.map((c) => (
                         <SelectItem key={c} value={c}>{c.toUpperCase()}</SelectItem>
                       ))}
@@ -233,12 +217,12 @@ export default function AdminSettingsPage() {
               <div>
                 <Label className="text-xs uppercase tracking-widest text-gray-800">Zeitzone</Label>
                 <div className="mt-2">
-                  <Select value={map['site.timezone'] || ''} onValueChange={(v) => setField('site.timezone', v)}>
+                  <Select value={map['site.timezone'] || '__NONE__'} onValueChange={(v) => setField('site.timezone', v === '__NONE__' ? '' : v)}>
                     <SelectTrigger className="w-full rounded-none">
                       <SelectValue placeholder="– wählen –" />
                     </SelectTrigger>
                     <SelectContent className="rounded-none max-h-72">
-                      <SelectItem value="">– wählen –</SelectItem>
+                      <SelectItem value="__NONE__">– wählen –</SelectItem>
                       {timezones.map((tz) => (
                         <SelectItem key={tz} value={tz}>{tz}</SelectItem>
                       ))}
@@ -252,12 +236,12 @@ export default function AdminSettingsPage() {
               <div>
                 <Label className="text-xs uppercase tracking-widest text-gray-800">Datumformat</Label>
                 <div className="mt-2">
-                  <Select value={map['site.dateFormat'] || ''} onValueChange={(v) => setField('site.dateFormat', v)}>
+                  <Select value={map['site.dateFormat'] || '__NONE__'} onValueChange={(v) => setField('site.dateFormat', v === '__NONE__' ? '' : v)}>
                     <SelectTrigger className="w-full rounded-none">
                       <SelectValue placeholder="– wählen –" />
                     </SelectTrigger>
                     <SelectContent className="rounded-none">
-                      <SelectItem value="">– wählen –</SelectItem>
+                      <SelectItem value="__NONE__">– wählen –</SelectItem>
                       {dateFormats.map((f) => (
                         <SelectItem key={f} value={f}>{f}</SelectItem>
                       ))}
@@ -274,59 +258,11 @@ export default function AdminSettingsPage() {
         </TabsContent>
 
         <TabsContent value="seo">
-          <div className="border border-gray-200 p-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label className="text-xs uppercase tracking-widest text-gray-800">Title Template</Label>
-                <Input className="mt-2 border-0 border-b-2 border-gray-200 rounded-none" value={map['seo.titleTemplate'] || ''} onChange={(e) => setField('seo.titleTemplate', e.target.value)} />
-              </div>
-              <div>
-                <Label className="text-xs uppercase tracking-widest text-gray-800">Keywords</Label>
-                <Input className="mt-2 border-0 border-b-2 border-gray-200 rounded-none" value={map['seo.keywords'] || ''} onChange={(e) => setField('seo.keywords', e.target.value)} />
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-xs uppercase tracking-widest text-gray-800">Meta Description</Label>
-              <textarea className="mt-2 w-full border-0 border-b-2 border-gray-200 bg-transparent py-3 text-sm" rows={3} value={map['seo.metaDescription'] || ''} onChange={(e) => setField('seo.metaDescription', e.target.value)} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2">
-                <Label className="text-xs uppercase tracking-widest text-gray-800">Open Graph Bild</Label>
-                <div className="mt-2 flex items-center gap-4">
-                  <input type="file" accept="image/*" onChange={(e) => handleUploadTo('seo.ogImageUrl', e.target.files)} />
-                  {isUploading && <span className="text-xs text-gray-500">Lädt…</span>}
-                </div>
-                {map['seo.ogImageUrl'] && (
-                  <div className="mt-3">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={map['seo.ogImageUrl']} alt="OG" className="h-16" />
-                  </div>
-                )}
-              </div>
-              <div>
-                <Label className="text-xs uppercase tracking-widest text-gray-800">Indexierung</Label>
-                <select className="mt-2 w-full border-0 border-b-2 border-gray-200 bg-transparent py-2 text-sm" value={map['seo.robotsIndex'] || 'true'} onChange={(e) => setField('seo.robotsIndex', e.target.value)}>
-                  <option value="true">Erlauben (index, follow)</option>
-                  <option value="false">Verbieten (noindex, nofollow)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <Label className="text-xs uppercase tracking-widest text-gray-800">Sitemap</Label>
-                <select className="mt-2 w-full border-0 border-b-2 border-gray-200 bg-transparent py-2 text-sm" value={map['seo.sitemapEnabled'] || 'true'} onChange={(e) => setField('seo.sitemapEnabled', e.target.value)}>
-                  <option value="true">Aktiv</option>
-                  <option value="false">Inaktiv</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="pt-2">
-              <Button onClick={saveSEO} className="bg-pink-500 hover:bg-pink-600 text-white rounded-none">Speichern</Button>
-            </div>
+          <div className="border border-gray-200 p-6 space-y-4">
+            <p className="text-sm text-gray-700">Die SEO-Verwaltung wurde in einen eigenen Bereich verschoben.</p>
+            <a href="/acp/seo" className="inline-flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white text-sm px-4 py-2 rounded-none transition-colors">
+              Zum SEO-Manager →
+            </a>
           </div>
         </TabsContent>
 

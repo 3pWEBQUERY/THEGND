@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getAvatarUrl } from '@/utils/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Plus, Eye, Clock, Image, X } from 'lucide-react'
@@ -408,7 +409,7 @@ export default function StoriesComponent() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={story.author.profile?.avatar || ''} />
+                    <AvatarImage src={getAvatarUrl(story.author.profile?.avatar, story.author.userType)} />
                     <AvatarFallback className="text-xs font-light tracking-widest bg-gray-100">
                       {story.author.email.charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -580,7 +581,7 @@ export default function StoriesComponent() {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={selectedStory.author.profile?.avatar || ''} />
+                    <AvatarImage src={getAvatarUrl(selectedStory.author.profile?.avatar, selectedStory.author.userType)} />
                     <AvatarFallback className="text-sm font-light tracking-widest bg-gray-100">
                       {selectedStory.author.email.charAt(0).toUpperCase()}
                     </AvatarFallback>

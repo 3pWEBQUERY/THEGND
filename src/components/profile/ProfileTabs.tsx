@@ -6,6 +6,7 @@ import ProfileTabsBar from '@/components/profile/ProfileTabsBar'
 import ProfileAboutTab from '@/components/profile/ProfileAboutTab'
 import ProfilePosts from '@/components/profile/ProfilePosts'
 import ProfileGalleryGrid from '@/components/profile/ProfileGalleryGrid'
+import { getAvatarUrl } from '@/utils/avatar'
 import ProfileContactInfo from '@/components/profile/ProfileContactInfo'
 import ProfileVisitorsTab from '@/components/profile/ProfileVisitorsTab'
 
@@ -54,7 +55,7 @@ export default function ProfileTabs(props: {
           <ProfileAboutTab profile={profile} userType={userType} />
         )}
         {active === 'posts' && (
-          <ProfilePosts posts={user.posts} displayName={displayName} avatar={avatar} />
+          <ProfilePosts posts={user.posts} displayName={displayName} avatar={getAvatarUrl(avatar, userType)} />
         )}
         {active === 'gallery' && (
           <>

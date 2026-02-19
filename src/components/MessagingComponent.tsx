@@ -14,6 +14,7 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import { getUserTypeDisplayName, getProfileUrl } from '@/lib/validations'
+import { getAvatarUrl } from '@/utils/avatar'
 import Link from 'next/link'
 
 interface Message {
@@ -337,17 +338,12 @@ export default function MessagingComponent() {
                   >
                     <div className="flex items-start space-x-3">
                       <div className="h-10 w-10 bg-gray-100 flex items-center justify-center">
-                        {conversation.partner_avatar ? (
-                          <img 
-                            src={conversation.partner_avatar} 
-                            alt="Avatar" 
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-xs font-light tracking-widest text-gray-600">
-                            {conversation.partner_email.charAt(0).toUpperCase()}
-                          </span>
-                        )}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src={getAvatarUrl(conversation.partner_avatar, conversation.partner_user_type)} 
+                          alt="Avatar" 
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
@@ -401,13 +397,8 @@ export default function MessagingComponent() {
                     className="flex items-center space-x-3 group"
                   >
                     <div className="h-9 w-9 bg-gray-100 flex items-center justify-center group-hover:ring-1 group-hover:ring-pink-400 transition-all">
-                      {info.avatar ? (
-                        <img src={info.avatar} alt="Avatar" className="h-full w-full object-cover" />
-                      ) : (
-                        <span className="text-xs font-light tracking-widest text-gray-600">
-                          {info.name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={getAvatarUrl(info.avatar, info.userType)} alt="Avatar" className="h-full w-full object-cover" />
                     </div>
                     <div>
                       <div className="text-sm font-light tracking-wide text-gray-800 group-hover:text-pink-600 transition-colors">{info.name}</div>
@@ -738,17 +729,12 @@ export default function MessagingComponent() {
                       onClick={() => startNewConversation(user.id)}
                     >
                       <div className="h-8 w-8 bg-gray-100 flex items-center justify-center">
-                        {user.profile?.avatar ? (
-                          <img 
-                            src={user.profile.avatar} 
-                            alt="Avatar" 
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-xs font-light tracking-widest text-gray-600">
-                            {user.email.charAt(0).toUpperCase()}
-                          </span>
-                        )}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img 
+                          src={getAvatarUrl(user.profile?.avatar, user.userType)} 
+                          alt="Avatar" 
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                       <div className="flex-1">
                         <div className="text-sm font-light tracking-wide text-gray-800">

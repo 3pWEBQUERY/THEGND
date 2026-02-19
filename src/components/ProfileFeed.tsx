@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getAvatarUrl } from '@/utils/avatar'
 import { Heart, MessageCircle, Share, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatTimeAgo, getUserTypeDisplayName } from '@/lib/validations'
 import CommentsThread from '@/components/CommentsThread'
@@ -63,13 +64,7 @@ export function ProfileViewPreview({ variant = 'STANDARD' }: { variant?: Profile
   )
 }
 
-function normalize(url?: string | null): string | undefined {
-  if (!url) return undefined
-  const t = url.trim()
-  if (!t) return undefined
-  if (t.startsWith('http://') || t.startsWith('https://')) return t
-  return t.startsWith('/') ? t : `/${t}`
-}
+// Avatar-Normalisierung jetzt in @/utils/avatar (getAvatarUrl)
 
 export default function ProfileFeed({ posts, adminActions }: Props) {
   const { data: session } = useSession()
@@ -256,7 +251,7 @@ export default function ProfileFeed({ posts, adminActions }: Props) {
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center space-x-4">
                     <Avatar className="h-12 w-12 object-cover">
-                      <AvatarImage src={normalize(post.author.profile?.avatar)} alt={`Avatar von ${displayName}`} />
+                      <AvatarImage src={getAvatarUrl(post.author.profile?.avatar, post.author.userType)} alt={`Avatar von ${displayName}`} />
                       <AvatarFallback className="text-sm font-light tracking-widest bg-gray-100">
                         {displayName.charAt(0).toUpperCase()}
                       </AvatarFallback>
@@ -413,7 +408,7 @@ export default function ProfileFeed({ posts, adminActions }: Props) {
                       {post.comments.slice(0, 2).map((comment: any) => (
                         <div key={comment.id} className={`flex items-start space-x-3 ${comment.parentId ? 'pl-8' : ''}`}>
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={normalize(comment.author?.profile?.avatar)} alt={`Avatar von ${(comment.author?.profile?.displayName || comment.author?.email) ?? 'Nutzer'}`} />
+                            <AvatarImage src={getAvatarUrl(comment.author?.profile?.avatar, comment.author?.userType)} alt={`Avatar von ${(comment.author?.profile?.displayName || comment.author?.email) ?? 'Nutzer'}`} />
                             <AvatarFallback className="text-xs font-light tracking-widest bg-gray-100">
                               {(comment.author?.profile?.displayName || comment.author?.email || '?').charAt(0).toUpperCase()}
                             </AvatarFallback>

@@ -3,6 +3,8 @@ import CreateUserForm from '@/components/admin/CreateUserForm'
 import { ActionButton } from '@/components/admin/ActionButton'
 import { PromptActionButton } from '@/components/admin/PromptActionButton'
 import { prisma } from '@/lib/prisma'
+import { getAvatarUrl } from '@/utils/avatar'
+import EscortsFilters from './EscortsFilters'
 
 export const dynamic = 'force-dynamic'
 
@@ -50,6 +52,7 @@ export default async function AdminEscortsPage({
         id: true,
         email: true,
         isActive: true,
+        lastSeenAt: true,
         createdAt: true,
         profile: true,
       },
@@ -73,21 +76,7 @@ export default async function AdminEscortsPage({
           placeholder="Suche (Email/Name)"
           className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm"
         />
-        <select name="visibility" defaultValue={visibility} className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm">
-          <option value="">Sichtbarkeit: alle</option>
-          <option value="PUBLIC">PUBLIC</option>
-          <option value="PRIVATE">PRIVATE</option>
-        </select>
-        <select name="active" defaultValue={activeParam} className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm">
-          <option value="">Aktiv-Status: alle</option>
-          <option value="true">Nur aktive</option>
-          <option value="false">Nur gesperrte</option>
-        </select>
-        <select name="hasProfile" defaultValue={hasProfile} className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm">
-          <option value="">Profil: alle</option>
-          <option value="true">Nur mit Profil</option>
-          <option value="false">Nur ohne Profil</option>
-        </select>
+        <EscortsFilters />
         <button className="px-4 py-2 rounded-none border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">Filtern</button>
       </form>
 
@@ -95,6 +84,7 @@ export default async function AdminEscortsPage({
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50">
             <tr>
+              <th className="text-left px-4 py-2 text-gray-500 font-medium w-14"></th>
               <th className="text-left px-4 py-2 text-gray-500 font-medium">Email</th>
               <th className="text-left px-4 py-2 text-gray-500 font-medium">Profil</th>
               <th className="text-left px-4 py-2 text-gray-500 font-medium">Aktiv</th>
@@ -103,8 +93,19 @@ export default async function AdminEscortsPage({
             </tr>
           </thead>
           <tbody>
-            {users.map(u => (
+            {users.map(u => {
+              const isOnline = u.lastSeenAt ? (Date.now() - new Date(u.lastSeenAt).getTime()) < 5 * 60 * 1000 : false
+              return (
               <tr key={u.id} className="border-t border-gray-100">
+                <td className="px-4 py-3">
+                  <div className="relative w-9 h-9">
+                    <img src={getAvatarUrl(u.profile?.avatar, u.userType)} alt="" className="w-9 h-9 rounded-full object-cover" />
+                    <span
+                      className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}
+                      title={isOnline ? 'Online' : 'Offline'}
+                    />
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-gray-900">{u.email}</td>
                 <td className="px-4 py-3 text-gray-700">
                   {u.profile ? (
@@ -123,7 +124,7 @@ export default async function AdminEscortsPage({
                 </td>
                 <td className="px-4 py-3 text-gray-500">{new Date(u.createdAt).toLocaleString()}</td>
                 <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-1">
                     {!u.profile && (
                       <ActionButton
                         label="Profil anlegen"
@@ -134,26 +135,34 @@ export default async function AdminEscortsPage({
                     {u.profile && (
                       <>
                         <PromptActionButton
-                          label="Name ändern"
+                          label=""
+                          icon="pencil"
+                          tooltip="Name ändern"
                           endpoint={`/api/acp/escorts/${u.profile.id}`}
                           method="PATCH"
                           promptLabel="Neuer Anzeigename"
                           field="displayName"
                         />
                         <ActionButton
-                          label={u.profile.visibility === 'PRIVATE' ? 'Öffentlich' : 'Privat'}
+                          label=""
+                          icon={u.profile.visibility === 'PRIVATE' ? 'eye' : 'eyeOff'}
+                          tooltip={u.profile.visibility === 'PRIVATE' ? 'Öffentlich machen' : 'Privat machen'}
                           endpoint={`/api/acp/escorts/${u.profile.id}`}
                           method="PATCH"
                           body={{ visibility: u.profile.visibility === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE' }}
                         />
                         <ActionButton
-                          label={u.isActive ? 'Sperren' : 'Entsperren'}
+                          label=""
+                          icon={u.isActive ? 'ban' : 'check'}
+                          tooltip={u.isActive ? 'Sperren' : 'Entsperren'}
                           endpoint={`/api/acp/users/${u.id}`}
                           method="PATCH"
                           body={{ isActive: !u.isActive }}
                         />
                         <ActionButton
-                          label="Profil löschen"
+                          label=""
+                          icon="trash"
+                          tooltip="Profil löschen"
                           endpoint={`/api/acp/escorts/${u.profile.id}`}
                           method="DELETE"
                           confirm="Escort-Profil wirklich löschen?"
@@ -164,7 +173,8 @@ export default async function AdminEscortsPage({
                   </div>
                 </td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
       </div>

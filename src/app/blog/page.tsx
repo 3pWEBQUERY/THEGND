@@ -16,7 +16,7 @@ export default async function BlogIndexPage({ searchParams }: { searchParams?: P
   const allowedCategories = ['AKTUELLES', 'INTERESSANT_HEISSES', 'VON_USER_FUER_USER']
   const category = allowedCategories.includes(catRaw) ? catRaw : ''
 
-  const where: any = { published: true }
+  const where: any = { published: true, blocked: false }
   if (q) {
     where.OR = [
       { title: { contains: q, mode: 'insensitive' } },

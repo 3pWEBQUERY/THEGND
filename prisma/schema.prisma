@@ -959,6 +959,7 @@ model BlogPost {
   content     String?
   coverImage  String?
   published   Boolean  @default(false)
+  blocked     Boolean  @default(false)
   publishedAt DateTime?
   category    BlogCategory @default(AKTUELLES)
   authorId    String
@@ -1261,4 +1262,61 @@ model Feedback {
   @@index([status, createdAt])
   @@index([reason])
   @@map("feedback")
+}
+
+// ─── SEO Management ────────────────────────────────────────────────────────
+
+// Per-page SEO overrides (admin-managed)
+model SeoPageOverride {
+  id              String   @id @default(cuid())
+  urlPath         String   @unique        // e.g. "/escorts", "/blog/my-post"
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  ogTitle         String?
+  ogDescription   String?
+  ogImageUrl      String?
+  robots          String?                 // e.g. "index,follow" or "noindex,nofollow"
+  canonicalUrl    String?
+  priority        Float    @default(0.6)  // sitemap priority
+  changeFrequency String   @default("daily") // sitemap changeFrequency
+  enabled         Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([urlPath])
+  @@map("seo_page_overrides")
+}
+
+// Redirect rules (admin-managed)
+model SeoRedirect {
+  id         String   @id @default(cuid())
+  sourcePath String   @unique           // e.g. "/old-page"
+  targetUrl  String                     // e.g. "/new-page" or "https://example.com"
+  statusCode Int      @default(301)     // 301 or 302
+  enabled    Boolean  @default(true)
+  hitCount   Int      @default(0)
+  lastHitAt  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sourcePath])
+  @@index([enabled])
+  @@map("seo_redirects")
+}
+
+// JSON-LD structured data snippets (admin-managed)
+model SeoStructuredData {
+  id             String   @id @default(cuid())
+  name           String                   // display name, e.g. "Organization"
+  schemaType     String                   // e.g. "Organization", "LocalBusiness", "FAQPage"
+  urlPattern     String                   // where it's rendered, e.g. "/" or "/escorts/*"
+  jsonLdTemplate String                   // JSON string with the schema.org markup
+  enabled        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([urlPattern])
+  @@index([enabled])
+  @@map("seo_structured_data")
 }

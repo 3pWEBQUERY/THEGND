@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
       { excerpt: { contains: q, mode: 'insensitive' } },
     ] } : undefined,
     orderBy: { createdAt: 'desc' },
-    select: { id: true, title: true, slug: true, published: true, publishedAt: true, createdAt: true, updatedAt: true }
+    select: { id: true, title: true, slug: true, published: true, blocked: true, publishedAt: true, createdAt: true, updatedAt: true }
   })
   return NextResponse.json(posts)
 }
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
         category: cat,
         authorId: session?.user?.id as string,
       },
-      select: { id: true, title: true, slug: true, published: true, publishedAt: true, createdAt: true, updatedAt: true }
+      select: { id: true, title: true, slug: true, published: true, blocked: true, publishedAt: true, createdAt: true, updatedAt: true }
     })
     return NextResponse.json(post, { status: 201 })
   } catch (e: any) {

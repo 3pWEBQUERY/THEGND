@@ -12,6 +12,7 @@ import ThreadSubscribeButton from '@/components/forum/ThreadSubscribeButton'
 import PostReportButton from '@/components/forum/PostReportButton'
 import PostDeleteButton from '@/components/forum/PostDeleteButton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getAvatarUrl } from '@/utils/avatar'
 import ThreadDeleteButton from '@/components/forum/ThreadDeleteButton'
 
 export const dynamic = 'force-dynamic'
@@ -22,7 +23,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
     where: { id },
     include: {
       forum: true,
-      author: { select: { id: true, email: true, profile: { select: { displayName: true, avatar: true } } } },
+      author: { select: { id: true, email: true, userType: true, profile: { select: { displayName: true, avatar: true } } } },
     },
   })
 
@@ -50,7 +51,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
     where: { threadId: t.id },
     orderBy: { createdAt: 'asc' },
     include: {
-      author: { select: { id: true, email: true, profile: { select: { displayName: true, avatar: true } } } },
+      author: { select: { id: true, email: true, userType: true, profile: { select: { displayName: true, avatar: true } } } },
     },
   })
 
@@ -101,17 +102,14 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
           <header className="px-4 py-4 bg-gray-50 text-xs text-gray-600 flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <Avatar className="h-8 w-8 bg-gray-200">
-                {node.author.profile?.avatar ? (
-                  <AvatarImage src={node.author.profile.avatar} alt="avatar" />
-                ) : (
-                  <AvatarFallback className="text-[10px] font-light tracking-widest text-gray-700">
-                    {(node.author.profile?.displayName || node.author.email || '?')
-                      .split(/\s+/)
-                      .map((s: string) => s.charAt(0).toUpperCase())
-                      .slice(0, 2)
-                      .join('')}
-                  </AvatarFallback>
-                )}
+                <AvatarImage src={getAvatarUrl(node.author.profile?.avatar, node.author.userType)} alt="avatar" />
+                <AvatarFallback className="text-[10px] font-light tracking-widest text-gray-700">
+                  {(node.author.profile?.displayName || node.author.email || '?')
+                    .split(/\s+/)
+                    .map((s: string) => s.charAt(0).toUpperCase())
+                    .slice(0, 2)
+                    .join('')}
+                </AvatarFallback>
               </Avatar>
               <div className="truncate">
                 <div className="text-sm text-gray-900 truncate">

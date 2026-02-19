@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
+import { getAvatarUrl } from '@/utils/avatar'
 import { ActionButton } from '@/components/admin/ActionButton'
 
 export const dynamic = 'force-dynamic'
@@ -31,8 +32,8 @@ export default async function AdminNetworkPage({
       select: {
         id: true,
         createdAt: true,
-        follower: { select: { email: true } },
-        following: { select: { email: true } },
+        follower: { select: { email: true, userType: true, profile: { select: { avatar: true } } } },
+        following: { select: { email: true, userType: true, profile: { select: { avatar: true } } } },
       },
     }),
   ])
@@ -73,8 +74,18 @@ export default async function AdminNetworkPage({
           <tbody>
             {follows.map(f => (
               <tr key={f.id} className="border-t border-gray-100">
-                <td className="px-4 py-3 text-gray-900">{f.follower.email}</td>
-                <td className="px-4 py-3 text-gray-900">{f.following.email}</td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <img src={getAvatarUrl((f.follower as any).profile?.avatar, (f.follower as any).userType)} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                    <span className="text-gray-900">{f.follower.email}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <img src={getAvatarUrl((f.following as any).profile?.avatar, (f.following as any).userType)} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                    <span className="text-gray-900">{f.following.email}</span>
+                  </div>
+                </td>
                 <td className="px-4 py-3 text-gray-500">{new Date(f.createdAt).toLocaleString()}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">

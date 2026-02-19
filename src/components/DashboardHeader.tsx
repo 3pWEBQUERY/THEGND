@@ -7,6 +7,7 @@ import { Bell, MessageCircle, UserPlus, Heart, MessageSquare, Rss } from 'lucide
 import { getUserTypeDisplayName, canCreateStories } from '@/lib/validations'
 import { UserType } from '@prisma/client'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getAvatarUrl } from '@/utils/avatar'
 import Image from 'next/image'
 
 interface DashboardHeaderProps {
@@ -156,6 +157,8 @@ export default function DashboardHeader({ session, activeTab, setActiveTab }: Da
     }
     if (session?.user?.id) loadAvatar()
   }, [session?.user?.id])
+
+  const userType = (session?.user as any)?.userType ?? 'MEMBER'
 
   // Load thumbnails for notifications that embed [uid:<id>]
   useEffect(() => {
@@ -591,13 +594,10 @@ export default function DashboardHeader({ session, activeTab, setActiveTab }: Da
                 aria-expanded={userMenuOpen}
               >
                 <Avatar className="size-8 bg-gray-200">
-                  {avatarUrl ? (
-                    <AvatarImage src={avatarUrl} alt="avatar" />
-                  ) : (
-                    <AvatarFallback className="text-xs font-light tracking-widest text-gray-600">
-                      {session?.user?.email?.charAt(0)?.toUpperCase() ?? '?'}
-                    </AvatarFallback>
-                  )}
+                  <AvatarImage src={getAvatarUrl(avatarUrl, userType)} alt="avatar" />
+                  <AvatarFallback className="text-xs font-light tracking-widest text-gray-600">
+                    {session?.user?.email?.charAt(0)?.toUpperCase() ?? '?'}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block text-left">
                   <div className="text-sm font-light text-gray-800">{session?.user?.email ?? 'Gast'}</div>

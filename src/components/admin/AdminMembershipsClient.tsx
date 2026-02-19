@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 
 type Plan = {
   id?: string
@@ -113,16 +114,20 @@ export default function AdminMembershipsClient() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-2xl font-light tracking-widest text-gray-900">Mitgliedschaften verwalten</h1>
         <div className="flex items-center gap-3">
-          <select
-            value={filterUserType}
-            onChange={(e) => setFilterUserType(e.target.value)}
-            className="border-0 border-b-2 border-gray-200 bg-transparent py-2 text-sm"
+          <Select
+            value={filterUserType || '_all'}
+            onValueChange={(v) => setFilterUserType(v === '_all' ? '' : v)}
           >
-            <option value="">Alle Kontotypen</option>
-            {USER_TYPES.map((t) => (
-              <option key={t} value={t}>{USER_TYPE_LABELS[t]}</option>
-            ))}
-          </select>
+            <SelectTrigger className="border-0 border-b-2 border-gray-200 bg-transparent py-2 text-sm rounded-none min-w-[180px]">
+              <SelectValue placeholder="Alle Kontotypen" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_all">Alle Kontotypen</SelectItem>
+              {USER_TYPES.map((t) => (
+                <SelectItem key={t} value={t}>{USER_TYPE_LABELS[t]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button onClick={addEmpty} className="bg-pink-500 hover:bg-pink-600 text-white rounded-none">Neuen Plan hinzufügen</Button>
         </div>
       </div>
@@ -144,35 +149,40 @@ export default function AdminMembershipsClient() {
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div>
                           <Label className="text-xs uppercase tracking-widest text-gray-800">Key</Label>
-                          <select
+                          <Select
                             value={plan.key ?? ''}
-                            onChange={(e) => {
-                              const v = e.target.value as Plan['key']
-                              setPlans((arr) => arr.map((p, idx) => idx === globalIdx ? { ...p, key: v } : p))
+                            onValueChange={(v) => {
+                              setPlans((arr) => arr.map((p, idx) => idx === globalIdx ? { ...p, key: (v || undefined) as Plan['key'] } : p))
                             }}
-                            className="mt-2 w-full border-0 border-b-2 border-gray-200 bg-transparent py-3 text-sm"
                           >
-                            <option value="">— auswählen —</option>
-                            {planKeys.map((k) => (
-                              <option key={k} value={k}>{k}</option>
-                            ))}
-                          </select>
+                            <SelectTrigger className="mt-2 w-full border-0 border-b-2 border-gray-200 bg-transparent py-3 text-sm rounded-none">
+                              <SelectValue placeholder="— auswählen —" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {planKeys.map((k) => (
+                                <SelectItem key={k} value={k}>{k}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div>
                           <Label className="text-xs uppercase tracking-widest text-gray-800">Kontotyp</Label>
-                          <select
-                            value={plan.userType ?? ''}
-                            onChange={(e) => {
-                              const v = e.target.value || null
-                              setPlans((arr) => arr.map((p, idx) => idx === globalIdx ? { ...p, userType: v } : p))
+                          <Select
+                            value={plan.userType ?? '_none'}
+                            onValueChange={(v) => {
+                              setPlans((arr) => arr.map((p, idx) => idx === globalIdx ? { ...p, userType: v === '_none' ? null : v } : p))
                             }}
-                            className="mt-2 w-full border-0 border-b-2 border-gray-200 bg-transparent py-3 text-sm"
                           >
-                            <option value="">— kein Typ (Legacy) —</option>
-                            {USER_TYPES.map((t) => (
-                              <option key={t} value={t}>{USER_TYPE_LABELS[t]}</option>
-                            ))}
-                          </select>
+                            <SelectTrigger className="mt-2 w-full border-0 border-b-2 border-gray-200 bg-transparent py-3 text-sm rounded-none">
+                              <SelectValue placeholder="— kein Typ (Legacy) —" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="_none">— kein Typ (Legacy) —</SelectItem>
+                              {USER_TYPES.map((t) => (
+                                <SelectItem key={t} value={t}>{USER_TYPE_LABELS[t]}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div>
                           <Label className="text-xs uppercase tracking-widest text-gray-800">Name</Label>

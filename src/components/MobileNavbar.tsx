@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react"
 import { Home, Users2, LogIn, MessageSquare, Settings, LogOut } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getAvatarUrl } from '@/utils/avatar'
 
 export default function MobileNavbar() {
   const { data: session } = useSession()
@@ -118,7 +119,7 @@ export default function MobileNavbar() {
             >
               <div className="flex flex-col items-center justify-center">
                 <Avatar className="size-8 mb-1 bg-white/10 ring-1 ring-white/30">
-                  <AvatarImage src={avatarUrl ?? undefined} alt="avatar" />
+                  <AvatarImage src={getAvatarUrl(avatarUrl, (session.user as any)?.userType)} alt="avatar" />
                   <AvatarFallback className="text-[10px] font-medium tracking-widest text-white bg-white/10">
                     {session.user.email?.charAt(0).toUpperCase()}
                   </AvatarFallback>

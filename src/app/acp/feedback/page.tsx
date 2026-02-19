@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { notFound } from 'next/navigation'
 import React from 'react'
 import StatusSelect from './StatusSelect'
+import FeedbackFilters from './FeedbackFilters'
 
 function formatDate(d: Date) {
   try {
@@ -53,33 +54,7 @@ export default async function AcpFeedbackPage({ searchParams }: any) {
       <h1 className="text-xl font-light tracking-widest">Feedback</h1>
       <div className="mt-2 h-[2px] w-24 bg-gradient-to-r from-pink-600/0 via-pink-500/80 to-pink-600/0" />
 
-      {/* Filters */}
-      <form method="get" className="mt-4 mb-4 flex flex-wrap gap-3 items-end">
-        <div>
-          <label className="block text-[11px] uppercase tracking-widest text-gray-600 mb-1">Status</label>
-          <select name="status" defaultValue={status || ''} className="border border-gray-300 px-2 py-1 text-xs bg-white">
-            <option value="">Alle</option>
-            <option value="OPEN">Open</option>
-            <option value="IN_REVIEW">In Review</option>
-            <option value="RESOLVED">Resolved</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-[11px] uppercase tracking-widest text-gray-600 mb-1">Grund</label>
-          <select name="reason" defaultValue={reason || ''} className="border border-gray-300 px-2 py-1 text-xs bg-white">
-            <option value="">Alle</option>
-            <option value="REPORT_AD">Anzeige melden</option>
-            <option value="BUG">Funktioniert nicht</option>
-            <option value="PRAISE">Lob & Kritik</option>
-            <option value="ADVERTISING">Werbung</option>
-            <option value="CUSTOMER_SERVICE">Kundenbetreuer</option>
-            <option value="OTHER">Etwas anderes</option>
-          </select>
-        </div>
-        <div>
-          <button type="submit" className="px-3 py-1 border border-gray-300 text-xs uppercase tracking-widest hover:bg-pink-50/40">Filtern</button>
-        </div>
-      </form>
+      <FeedbackFilters />
 
       <div className="overflow-x-auto border border-gray-200">
         <table className="min-w-full bg-white text-sm">

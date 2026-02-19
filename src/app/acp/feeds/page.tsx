@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { ActionButton } from '@/components/admin/ActionButton'
 import { PromptActionButton } from '@/components/admin/PromptActionButton'
+import FeedsStatusFilter from './FeedsStatusFilter'
 
 export const dynamic = 'force-dynamic'
 
@@ -79,11 +80,7 @@ export default async function AdminFeedsPage({
           placeholder="Autor Email"
           className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm"
         />
-        <select name="active" defaultValue={activeParam} className="w-full border border-gray-300 rounded-none px-3 py-2 text-sm">
-          <option value="">Status: alle</option>
-          <option value="true">Nur aktiv</option>
-          <option value="false">Nur inaktiv</option>
-        </select>
+        <FeedsStatusFilter />
         <button className="px-4 py-2 rounded-none border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">Filtern</button>
       </form>
 
@@ -110,22 +107,28 @@ export default async function AdminFeedsPage({
                 </td>
                 <td className="px-4 py-3 text-gray-500">{new Date(p.createdAt).toLocaleString()}</td>
                 <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-1">
                     <PromptActionButton
-                      label="Inhalt bearbeiten"
+                      label=""
+                      icon="pencil"
+                      tooltip="Inhalt bearbeiten"
                       endpoint={`/api/acp/posts/${p.id}`}
                       method="PATCH"
                       promptLabel="Neuer Inhalt"
                       field="content"
                     />
                     <ActionButton
-                      label={p.isActive ? 'Deaktivieren' : 'Aktivieren'}
+                      label=""
+                      icon={p.isActive ? 'pause' : 'play'}
+                      tooltip={p.isActive ? 'Deaktivieren' : 'Aktivieren'}
                       endpoint={`/api/acp/posts/${p.id}`}
                       method="PATCH"
                       body={{ isActive: !p.isActive }}
                     />
                     <ActionButton
-                      label="Löschen"
+                      label=""
+                      icon="trash"
+                      tooltip="Löschen"
                       endpoint={`/api/acp/posts/${p.id}`}
                       method="DELETE"
                       confirm="Feed wirklich löschen?"

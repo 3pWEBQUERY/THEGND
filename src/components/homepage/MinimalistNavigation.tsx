@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useSession, signOut } from 'next-auth/react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { getAvatarUrl } from '@/utils/avatar'
 import { useTranslation } from 'react-i18next'
 import { usePathname, useRouter } from 'next/navigation'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -510,13 +511,10 @@ export default function MinimalistNavigation({ darkBg = false }: { darkBg?: bool
             {session?.user ? (
               <Link href="/dashboard" className="hidden md:flex items-center">
                 <Avatar className="size-8 bg-white/10 ring-1 ring-white/30">
-                  {avatarUrl ? (
-                    <AvatarImage src={avatarUrl} alt="avatar" />
-                  ) : (
-                    <AvatarFallback className="text-xs font-light tracking-widest text-white bg-white/10">
-                      {session.user.email?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  )}
+                  <AvatarImage src={getAvatarUrl(avatarUrl, (session.user as any)?.userType)} alt="avatar" />
+                  <AvatarFallback className="text-xs font-light tracking-widest text-white bg-white/10">
+                    {session.user.email?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
               </Link>
             ) : (

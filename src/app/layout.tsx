@@ -9,6 +9,7 @@ import "./globals.css";
 import { getPublicSettings } from "@/lib/settings";
 import { getAvailableLocales } from "@/lib/locales";
 import PublicSettingsProvider from "@/components/providers/public-settings-provider";
+import StructuredData from "@/components/StructuredData";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -87,6 +88,7 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <StructuredData path="/" />
         <AuthProvider>
           <I18nProvider>
             <PublicSettingsProvider initial={settings}>

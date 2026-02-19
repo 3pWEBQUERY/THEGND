@@ -18,6 +18,7 @@ import {
   MessageCircle,
   BookOpen,
   Mail,
+  Search,
 } from 'lucide-react'
 
 export type LinkItem = { href: string; label: string; Icon: React.ComponentType<{ size?: number; className?: string }> }
@@ -33,6 +34,7 @@ export const acpLinks: LinkItem[] = [
   { href: '/acp/memberships', label: 'Mitgliedschaften', Icon: Crown },
   { href: '/acp/memberships-users', label: 'User-Mitgliedschaften', Icon: UserCog },
   { href: '/acp/addons', label: 'Add-ons', Icon: Puzzle },
+  { href: '/acp/seo', label: 'SEO', Icon: Search },
   { href: '/acp/settings', label: 'Einstellungen', Icon: Settings },
   { href: '/acp/marketing', label: 'Marketing', Icon: Megaphone },
   { href: '/acp/messages', label: 'Nachrichten', Icon: MessageSquare },

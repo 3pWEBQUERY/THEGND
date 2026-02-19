@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { getAvatarUrl } from '@/utils/avatar'
 
 type ConnectedEscort = {
   id: string
@@ -103,14 +104,8 @@ export default function ConnectedEscortsSlider({ heading = 'VERKNÜPFTE ESCORTS'
               className={`absolute top-2 left-2 h-3 w-3 rounded-full border-2 border-white ${availability[g.id] ? 'bg-emerald-500' : 'bg-gray-300'}`}
               title={availability[g.id] ? 'Anwesend' : 'Abwesend'}
             />
-            {g.profile?.avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={g.profile.avatar} alt={name} className="h-full w-full object-cover" />
-            ) : (
-              <div className="h-full w-full bg-gray-300 flex items-center justify-center">
-                <span className="text-gray-500 text-sm">PHOTO</span>
-              </div>
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={getAvatarUrl(g.profile?.avatar, g.userType ?? 'ESCORT')} alt={name} className="h-full w-full object-cover" />
           </div>
         </Link>
         <div className="px-3 py-3">
