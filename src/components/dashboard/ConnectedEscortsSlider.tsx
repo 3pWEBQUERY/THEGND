@@ -105,7 +105,7 @@ export default function ConnectedEscortsSlider({ heading = 'VERKNÜPFTE ESCORTS'
               title={availability[g.id] ? 'Anwesend' : 'Abwesend'}
             />
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={getAvatarUrl(g.profile?.avatar, g.userType ?? 'ESCORT')} alt={name} className="h-full w-full object-cover" />
+            <img src={getAvatarUrl(g.profile?.avatar, 'ESCORT')} alt={name} className="h-full w-full object-cover" />
           </div>
         </Link>
         <div className="px-3 py-3">

@@ -28,7 +28,7 @@ interface CommentItem {
   editRequestMessage?: string | null
   rating?: number | null
   verifiedByTicket?: boolean | null
-  author?: { email?: string | null; profile?: { displayName?: string | null; avatar?: string | null } | null } | null
+  author?: { email?: string | null; userType?: string | null; profile?: { displayName?: string | null; avatar?: string | null } | null } | null
 }
 
 export default function CommentsComponent() {

@@ -22,7 +22,7 @@ type CommentItem = {
   editRequested: boolean
   editRequestMessage?: string | null
   rating?: number | null
-  author?: { profile?: { displayName?: string | null; avatar?: string | null } | null; email?: string | null } | null
+  author?: { profile?: { displayName?: string | null; avatar?: string | null } | null; email?: string | null; userType?: string | null } | null
 }
 
 interface ProfileCommentsProps {

@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
         editRequested: true,
         editRequestMessage: true,
         targetUserId: true,
-        author: { select: { email: true, profile: { select: { displayName: true, avatar: true } } } },
+        author: { select: { email: true, userType: true, profile: { select: { displayName: true, avatar: true } } } },
       } as any,
     })
 
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
           authorId: session.user.id,
         } as any,
         include: {
-          author: { select: { email: true, profile: { select: { displayName: true, avatar: true } } } },
+          author: { select: { email: true, userType: true, profile: { select: { displayName: true, avatar: true } } } },
         },
       })
     } catch (e: any) {
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
             authorId: session.user.id,
           } as any,
           include: {
-            author: { select: { email: true, profile: { select: { displayName: true, avatar: true } } } },
+            author: { select: { email: true, userType: true, profile: { select: { displayName: true, avatar: true } } } },
           },
         })
       } else {
