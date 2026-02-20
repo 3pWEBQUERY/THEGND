@@ -106,7 +106,7 @@ export default function CommunityHeader({ community, membership, isAuthenticated
             {membership?.role === 'OWNER' || membership?.role === 'MODERATOR' ? (
               <Link
                 href={`/community/${community.slug}/mod`}
-                className="flex items-center gap-1 px-3 py-2 text-xs border border-gray-300 uppercase tracking-widest text-gray-600 hover:bg-gray-50"
+                className="flex items-center gap-1 px-2 py-1 text-[10px] md:px-3 md:py-2 md:text-xs border border-gray-300 uppercase tracking-widest text-gray-600 hover:bg-gray-50"
               >
                 <Shield className="h-3.5 w-3.5" />
                 Mod Tools
@@ -117,7 +117,7 @@ export default function CommunityHeader({ community, membership, isAuthenticated
               onClick={handleJoinLeave}
               disabled={loading || membership?.role === 'OWNER'}
               className={cn(
-                'px-4 py-2 text-xs uppercase tracking-widest font-light transition-colors',
+                'px-2 py-1 text-[10px] md:px-4 md:py-2 md:text-xs uppercase tracking-widest font-light transition-colors',
                 isMember
                   ? 'border border-red-300 text-red-600 hover:bg-red-50'
                   : 'bg-pink-500 hover:bg-pink-600 text-white',

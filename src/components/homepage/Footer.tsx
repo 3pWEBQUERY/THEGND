@@ -7,7 +7,7 @@ import { usePublicSettingsCtx } from '@/components/providers/public-settings-pro
 export default function Footer() {
   const site = usePublicSettingsCtx()
   return (
-    <footer className="bg-neutral-950 bg-gradient-to-b from-black to-neutral-900 border-t border-neutral-800/60 py-16">
+    <footer className="bg-neutral-950 bg-gradient-to-b from-black to-neutral-900 border-t border-neutral-800/60 pt-16 pb-32 md:pb-16">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center">
           <h3 className="text-3xl font-light tracking-[0.35em] text-neutral-100 mb-3">{site?.name || 'THEGND'}</h3>
@@ -64,7 +64,7 @@ export default function Footer() {
               FEEDBACK
             </Link>
           </div>
-          <p className="text-[11px] md:text-xs font-light text-neutral-400 tracking-[0.25em]"> 2026 {site?.name || 'THEGND'}. ALL RIGHTS RESERVED.</p>
+          <p className="text-[11px] md:text-xs font-light text-neutral-400 tracking-[0.25em] mb-4 md:mb-0"> 2026 {site?.name || 'THEGND'}. ALL RIGHTS RESERVED.</p>
         </div>
       </div>
     </footer>

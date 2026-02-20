@@ -94,7 +94,7 @@ export default async function RootLayout({
             <PublicSettingsProvider initial={settings}>
               <ToastProvider>
                 <PresenceHeartbeat />
-                <div className="pb-24 md:pb-0">{children}</div>
+                <div>{children}</div>
                 <MobileNavbar />
               </ToastProvider>
             </PublicSettingsProvider>

@@ -102,8 +102,26 @@ export default async function CommunityDetailPage({ params }: Props) {
 
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
+          {/* Sidebar – on mobile shown first, on desktop in right column */}
+          <div className="order-first lg:order-last">
+            <CommunitySidebar
+              community={{
+                ...community,
+                createdAt: community.createdAt.toISOString(),
+              }}
+              rules={community.rules}
+              moderators={moderators}
+              recentMembers={recentMembers.map((m: any) => ({
+                id: m.user.id,
+                avatar: m.user.profile?.avatar || null,
+                displayName: m.user.profile?.displayName || null,
+              }))}
+              isMember={!!membership}
+            />
+          </div>
+
           {/* Main feed */}
-          <div>
+          <div className="order-last lg:order-first">
             {membership && (
               <Link
                 href={`/community/${slug}/submit`}
@@ -117,22 +135,6 @@ export default async function CommunityDetailPage({ params }: Props) {
             )}
             <PostFeed communitySlug={slug} showCommunity={false} />
           </div>
-
-          {/* Sidebar */}
-          <CommunitySidebar
-            community={{
-              ...community,
-              createdAt: community.createdAt.toISOString(),
-            }}
-            rules={community.rules}
-            moderators={moderators}
-            recentMembers={recentMembers.map((m: any) => ({
-              id: m.user.id,
-              avatar: m.user.profile?.avatar || null,
-              displayName: m.user.profile?.displayName || null,
-            }))}
-            isMember={!!membership}
-          />
         </div>
       </div>
       <Footer />

@@ -299,30 +299,31 @@ export default function PostDetailClient({
             )}
 
             {/* Actions bar */}
-            <div className="flex items-center gap-4 mt-4 pt-3 border-t border-gray-100 text-[10px] text-gray-500 uppercase tracking-widest">
-              <span className="flex items-center gap-1">
+            <div className="flex items-center gap-2 md:gap-4 mt-4 pt-3 border-t border-gray-100 text-[10px] text-gray-500 uppercase tracking-widest">
+              <span className="flex items-center gap-1 px-2 py-1.5 md:px-0 md:py-0 bg-gray-100 md:bg-transparent">
                 <MessageSquare className="h-3.5 w-3.5" />
-                {post.commentCount} Kommentare
+                <span className="hidden md:inline">{post.commentCount} Kommentare</span>
+                <span className="md:hidden">{post.commentCount}</span>
               </span>
 
               <button
                 onClick={toggleSave}
                 className={cn(
-                  'flex items-center gap-1 hover:text-gray-700',
+                  'flex items-center gap-1 hover:text-gray-700 px-2 py-1.5 md:px-0 md:py-0 bg-gray-100 md:bg-transparent',
                   saved && 'text-pink-500',
                 )}
               >
                 <Bookmark className={cn('h-3.5 w-3.5', saved && 'fill-current')} />
-                {saved ? 'Gespeichert' : 'Speichern'}
+                <span className="hidden md:inline">{saved ? 'Gespeichert' : 'Speichern'}</span>
               </button>
 
               <div className="relative">
                 <button
                   onClick={sharePost}
-                  className="flex items-center gap-1 hover:text-gray-700"
+                  className="flex items-center gap-1 hover:text-gray-700 px-2 py-1.5 md:px-0 md:py-0 bg-gray-100 md:bg-transparent"
                 >
                   <Share2 className="h-3.5 w-3.5" />
-                  Teilen
+                  <span className="hidden md:inline">Teilen</span>
                 </button>
                 {shareToast && (
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-900 text-white text-[10px] px-3 py-1.5 whitespace-nowrap z-50 shadow-lg">
@@ -334,10 +335,10 @@ export default function PostDetailClient({
               {isAuthenticated && !isAuthor && (
                 <button
                   onClick={() => setShowReport(!showReport)}
-                  className="flex items-center gap-1 hover:text-red-500"
+                  className="flex items-center gap-1 hover:text-red-500 px-2 py-1.5 md:px-0 md:py-0 bg-gray-100 md:bg-transparent"
                 >
                   <Flag className="h-3.5 w-3.5" />
-                  Melden
+                  <span className="hidden md:inline">Melden</span>
                 </button>
               )}
 
@@ -345,10 +346,10 @@ export default function PostDetailClient({
                 <div className="relative">
                   <button
                     onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
-                    className="flex items-center gap-1 hover:text-red-600"
+                    className="flex items-center gap-1 hover:text-red-600 px-2 py-1.5 md:px-0 md:py-0 bg-gray-100 md:bg-transparent"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                    Löschen
+                    <span className="hidden md:inline">Löschen</span>
                   </button>
                   {showDeleteConfirm && (
                     <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 shadow-lg p-3 z-50 min-w-[220px]">

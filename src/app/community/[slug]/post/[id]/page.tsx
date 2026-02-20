@@ -183,6 +183,25 @@ export default async function PostDetailPage({ params }: Props) {
       />
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
+          {/* Sidebar – on mobile shown first, on desktop in right column */}
+          <div className="order-first lg:order-last">
+            <CommunitySidebar
+              community={{
+                ...post.community,
+                createdAt: post.community.createdAt?.toISOString?.() ?? new Date().toISOString(),
+              }}
+              rules={post.community.rules}
+              moderators={moderators}
+              recentMembers={recentMembers.map((m: any) => ({
+                id: m.user.id,
+                avatar: m.user.profile?.avatar || null,
+                displayName: m.user.profile?.displayName || null,
+              }))}
+              isMember={!!membership}
+            />
+          </div>
+
+          <div className="order-last lg:order-first">
           <PostDetailClient
             post={{
               id: post.id,
@@ -220,21 +239,7 @@ export default async function PostDetailPage({ params }: Props) {
             isAuthenticated={!!userId}
             currentUserId={userId}
           />
-
-          <CommunitySidebar
-            community={{
-              ...post.community,
-              createdAt: post.community.createdAt?.toISOString?.() ?? new Date().toISOString(),
-            }}
-            rules={post.community.rules}
-            moderators={moderators}
-            recentMembers={recentMembers.map((m: any) => ({
-              id: m.user.id,
-              avatar: m.user.profile?.avatar || null,
-              displayName: m.user.profile?.displayName || null,
-            }))}
-            isMember={!!membership}
-          />
+          </div>
         </div>
       </div>
       <Footer />
