@@ -32,7 +32,7 @@ export default async function CommunityDetailPage({ params }: Props) {
           OR: [{ role: 'OWNER' }, { role: 'MODERATOR' }],
         },
         include: {
-          user: { select: { id: true, name: true, displayName: true } },
+          user: { select: { id: true, email: true, userType: true, profile: { select: { displayName: true, avatar: true } } } },
         },
       },
     },
@@ -69,6 +69,16 @@ export default async function CommunityDetailPage({ params }: Props) {
   const moderators = community.members.filter(
     (m: any) => m.role === 'OWNER' || m.role === 'MODERATOR',
   )
+
+  // Fetch recent members with avatars for sidebar display
+  const recentMembers = await (prisma as any).communityMember.findMany({
+    where: { communityId: community.id },
+    take: 5,
+    orderBy: { joinedAt: 'desc' },
+    include: {
+      user: { select: { id: true, profile: { select: { avatar: true, displayName: true } } } },
+    },
+  })
 
   return (
     <>
@@ -116,6 +126,11 @@ export default async function CommunityDetailPage({ params }: Props) {
             }}
             rules={community.rules}
             moderators={moderators}
+            recentMembers={recentMembers.map((m: any) => ({
+              id: m.user.id,
+              avatar: m.user.profile?.avatar || null,
+              displayName: m.user.profile?.displayName || null,
+            }))}
             isMember={!!membership}
           />
         </div>

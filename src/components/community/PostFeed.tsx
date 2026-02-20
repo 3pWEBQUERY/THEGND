@@ -47,7 +47,20 @@ export default function PostFeed({ communitySlug, mode = 'all', showCommunity = 
         const res = await fetch(url)
         const data = await res.json()
         if (res.ok) {
-          setPosts((prev) => (append ? [...prev, ...data.posts] : data.posts))
+          const community = data.community
+          const mapped = (data.posts || []).map((p: any) => ({
+            ...p,
+            community: p.community || community || { slug: communitySlug, name: communitySlug, icon: null },
+            author: {
+              id: p.author?.id,
+              displayName: p.author?.profile?.displayName || p.author?.displayName || null,
+              avatarUrl: p.author?.profile?.avatar || p.author?.avatarUrl || null,
+              userType: p.author?.userType || null,
+            },
+            commentCount: p.commentCount ?? p._count?.comments ?? 0,
+            userVote: p.userVote ?? p.votes?.[0]?.type ?? null,
+          }))
+          setPosts((prev) => (append ? [...prev, ...mapped] : mapped))
           setCursor(data.nextCursor ?? null)
           setHasMore(!!data.nextCursor)
         }

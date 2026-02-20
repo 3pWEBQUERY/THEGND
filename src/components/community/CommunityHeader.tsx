@@ -62,9 +62,9 @@ export default function CommunityHeader({ community, membership, isAuthenticated
   }
 
   return (
-    <div className="border border-gray-200 bg-white">
+    <div className="bg-white border-b border-gray-200">
       {/* Banner */}
-      <div className="h-32 md:h-48 bg-gray-100 relative overflow-hidden">
+      <div className="h-[50vh] min-h-[400px] bg-gray-100 relative overflow-hidden">
         {community.banner ? (
           <img
             src={community.banner}
@@ -77,7 +77,7 @@ export default function CommunityHeader({ community, membership, isAuthenticated
       </div>
 
       {/* Info bar */}
-      <div className="px-4 pb-3">
+      <div className="max-w-6xl mx-auto px-4 pb-3">
         <div className="flex items-end gap-3 -mt-6 relative z-10">
           <Avatar className="h-16 w-16 border-4 border-white bg-white">
             {community.icon ? (

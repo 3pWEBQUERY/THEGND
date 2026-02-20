@@ -1,5 +1,6 @@
 import MinimalistNavigation from '@/components/homepage/MinimalistNavigation'
 import Footer from '@/components/homepage/Footer'
+import CommunityHero from '@/components/community/CommunityHero'
 import ModDashboardClient from './ModDashboardClient'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
@@ -56,8 +57,8 @@ export default async function ModDashboardPage({ params }: Props) {
   const recentModLog = await (prisma as any).communityModLog.findMany({
     where: { communityId: community.id },
     include: {
-      moderator: { select: { id: true, name: true, displayName: true } },
-      targetUser: { select: { id: true, name: true, displayName: true } },
+      moderator: { select: { id: true, email: true, profile: { select: { displayName: true } } } },
+      targetUser: { select: { id: true, email: true, profile: { select: { displayName: true } } } },
     },
     orderBy: { createdAt: 'desc' },
     take: 20,
@@ -67,7 +68,7 @@ export default async function ModDashboardPage({ params }: Props) {
   const members = await (prisma as any).communityMember.findMany({
     where: { communityId: community.id },
     include: {
-      user: { select: { id: true, name: true, displayName: true, email: true } },
+      user: { select: { id: true, email: true, profile: { select: { displayName: true } } } },
     },
     orderBy: { joinedAt: 'desc' },
     take: 50,
@@ -77,8 +78,8 @@ export default async function ModDashboardPage({ params }: Props) {
   const bans = await (prisma as any).communityBan.findMany({
     where: { communityId: community.id },
     include: {
-      user: { select: { id: true, name: true, displayName: true } },
-      bannedBy: { select: { id: true, name: true, displayName: true } },
+      user: { select: { id: true, email: true, profile: { select: { displayName: true } } } },
+      bannedBy: { select: { id: true, email: true, profile: { select: { displayName: true } } } },
     },
     orderBy: { createdAt: 'desc' },
   })
@@ -87,7 +88,7 @@ export default async function ModDashboardPage({ params }: Props) {
   const reports = await (prisma as any).communityReport.findMany({
     where: { communityId: community.id },
     include: {
-      reporter: { select: { id: true, name: true, displayName: true } },
+      reporter: { select: { id: true, email: true, profile: { select: { displayName: true } } } },
       post: { select: { id: true, title: true } },
       comment: { select: { id: true, content: true } },
     },
@@ -98,6 +99,7 @@ export default async function ModDashboardPage({ params }: Props) {
   return (
     <>
       <MinimalistNavigation />
+      <CommunityHero title="MODERATION" subtitle={`Moderationsbereich für c/${community.name}`} />
       <ModDashboardClient
         community={{
           id: community.id,
@@ -115,7 +117,7 @@ export default async function ModDashboardPage({ params }: Props) {
         members={members.map((m: any) => ({
           id: m.id,
           userId: m.user.id,
-          name: m.user.displayName || m.user.name || 'Anonym',
+          name: m.user.profile?.displayName || m.user.email || 'Anonym',
           email: m.user.email,
           role: m.role,
           joinedAt: m.joinedAt.toISOString(),
@@ -123,18 +125,18 @@ export default async function ModDashboardPage({ params }: Props) {
         bans={bans.map((b: any) => ({
           id: b.id,
           userId: b.user.id,
-          name: b.user.displayName || b.user.name || 'Anonym',
+          name: b.user.profile?.displayName || b.user.email || 'Anonym',
           reason: b.reason,
           status: b.status,
           expiresAt: b.expiresAt?.toISOString() || null,
-          bannedByName: b.bannedBy.displayName || b.bannedBy.name || 'Mod',
+          bannedByName: b.bannedBy.profile?.displayName || b.bannedBy.email || 'Mod',
           createdAt: b.createdAt.toISOString(),
         }))}
         reports={reports.map((r: any) => ({
           id: r.id,
           reason: r.reason,
           status: r.status,
-          reporterName: r.reporter.displayName || r.reporter.name || 'Anonym',
+          reporterName: r.reporter.profile?.displayName || r.reporter.email || 'Anonym',
           postTitle: r.post?.title || null,
           postId: r.post?.id || null,
           commentContent: r.comment?.content?.slice(0, 100) || null,
@@ -145,8 +147,8 @@ export default async function ModDashboardPage({ params }: Props) {
           id: l.id,
           action: l.action,
           reason: l.reason,
-          modName: l.moderator.displayName || l.moderator.name || 'Mod',
-          targetName: l.targetUser?.displayName || l.targetUser?.name || null,
+          modName: l.moderator.profile?.displayName || l.moderator.email || 'Mod',
+          targetName: l.targetUser?.profile?.displayName || l.targetUser?.email || null,
           createdAt: l.createdAt.toISOString(),
         }))}
         openReports={openReports}

@@ -55,7 +55,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
       orderBy,
       take: limit + 1,
       include: {
-        author: { select: { id: true, email: true, profile: { select: { displayName: true, avatar: true } } } },
+        author: { select: { id: true, email: true, userType: true, profile: { select: { displayName: true, avatar: true } } } },
         flair: true,
         _count: { select: { comments: true } },
         ...(userId ? { votes: { where: { userId }, select: { type: true } } } : {}),

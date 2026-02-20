@@ -1,4 +1,4 @@
-export default function CommunityHero({ title = 'COMMUNITIES' }: { title?: string }) {
+export default function CommunityHero({ title = 'COMMUNITIES', subtitle }: { title?: string; subtitle?: string }) {
   return (
     <section className="relative h-[50vh] min-h-[400px]">
       <div className="absolute inset-0">
@@ -9,6 +9,9 @@ export default function CommunityHero({ title = 'COMMUNITIES' }: { title?: strin
         <div>
           <h1 className="text-5xl md:text-6xl font-thin tracking-wider text-white mb-4">{title}</h1>
           <div className="w-24 h-px bg-pink-500 mx-auto" />
+          {subtitle && (
+            <p className="mt-4 text-sm md:text-base text-gray-300 font-light tracking-wide max-w-lg mx-auto">{subtitle}</p>
+          )}
         </div>
       </div>
     </section>

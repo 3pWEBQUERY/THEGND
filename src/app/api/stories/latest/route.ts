@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
         displayName: s.author.profile?.displayName ?? null,
         email: s.author.email,
         avatar: s.author.profile?.avatar ?? null,
+        userType: s.author.userType,
       },
       _count: { views: s._count.views },
     }))

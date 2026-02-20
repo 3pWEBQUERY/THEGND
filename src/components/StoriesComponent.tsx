@@ -574,34 +574,35 @@ export default function StoriesComponent() {
       {/* Story View Dialog */}
       {viewDialogOpen && selectedStory && (
         <div
-          className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center z-50 p-6"
+          className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[10020] p-0 md:p-6"
+          onClick={(e) => { if (e.target === e.currentTarget) setViewDialogOpen(false) }}
         >
-          <div className="bg-white w-full max-w-3xl h-[85vh] overflow-hidden rounded-none">
-            <div className="p-8">
-              <div className="flex items-center justify-between mb-6">
+          <div className="bg-gray-950/95 w-full h-full md:w-full md:max-w-3xl md:h-[85vh] overflow-y-auto overflow-x-hidden">
+            <div className="p-4 md:p-8 flex flex-col h-full">
+              <div className="flex items-center justify-between mb-4 md:mb-6">
                 <div className="flex items-center space-x-3">
-                  <Avatar className="h-12 w-12">
+                  <Avatar className="h-10 w-10 md:h-12 md:w-12">
                     <AvatarImage src={getAvatarUrl(selectedStory.author.profile?.avatar, selectedStory.author.userType)} />
-                    <AvatarFallback className="text-sm font-light tracking-widest bg-gray-100">
+                    <AvatarFallback className="text-sm font-light tracking-widest bg-gray-800 text-gray-300">
                       {selectedStory.author.email.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="text-sm font-light tracking-wide text-gray-800">
+                    <div className="text-sm font-light tracking-wide text-white">
                       {selectedStory.author.profile?.displayName || selectedStory.author.email}
                     </div>
                     <div className="flex items-center space-x-3 mt-1">
-                      <div className="text-xs font-light tracking-widest text-gray-500 uppercase">
+                      <div className="text-xs font-light tracking-widest text-gray-400 uppercase">
                         {getUserTypeDisplayName(selectedStory.author.userType as any)}
                       </div>
-                      <span className="text-xs font-light tracking-wide text-gray-400">
+                      <span className="text-xs font-light tracking-wide text-gray-500">
                         {formatTimeRemaining(selectedStory.expiresAt)} verbleibend
                       </span>
                     </div>
                   </div>
                 </div>
                 <button 
-                  className="text-gray-500 hover:text-white transition-colors p-2 rounded-full hover:bg-[var(--brand-pink)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-pink)]/40"
+                  className="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-pink-500/40"
                   onClick={() => setViewDialogOpen(false)}
                   aria-label="Viewer schließen"
                 >
@@ -609,7 +610,7 @@ export default function StoriesComponent() {
                 </button>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-4 flex-1 flex flex-col min-h-0">
                 {authorSequence.length > 0 ? (
                   <>
                     {/* Segmented progress bar */}
@@ -617,7 +618,7 @@ export default function StoriesComponent() {
                       {authorSequence.map((_, i) => (
                         <div
                           key={i}
-                          className={`h-1 flex-1 bg-gray-200 overflow-hidden`}
+                          className="h-1 flex-1 bg-white/10 overflow-hidden"
                           role="progressbar"
                           aria-valuemin={0}
                           aria-valuemax={authorSequence.length}
@@ -632,7 +633,7 @@ export default function StoriesComponent() {
                     </div>
                     {(authorSequence[seqIndex].image || authorSequence[seqIndex].video) && (
                       <div
-                        className="w-full"
+                        className="w-full flex-1 min-h-0"
                         onMouseEnter={() => setAutoAdvancePaused(true)}
                         onMouseLeave={() => setAutoAdvancePaused(false)}
                       >
@@ -640,12 +641,12 @@ export default function StoriesComponent() {
                           <img
                             src={authorSequence[seqIndex].image!}
                             alt="Story"
-                            className="w-full h-[60vh] md:h-[65vh] object-cover rounded-none"
+                            className="w-full h-full object-contain md:object-cover md:h-[60vh]"
                           />
                         ) : (
                           <video
                             src={authorSequence[seqIndex].video!}
-                            className="w-full h-[60vh] md:h-[65vh] object-cover rounded-none"
+                            className="w-full h-full object-contain md:object-cover md:h-[60vh]"
                             controls
                             autoPlay
                             muted
@@ -678,10 +679,10 @@ export default function StoriesComponent() {
                         )}
                       </div>
                     )}
-                    <p className="text-sm font-light tracking-wide text-gray-700 leading-relaxed">
+                    <p className="text-sm font-light tracking-wide text-gray-300 leading-relaxed">
                       {authorSequence[seqIndex].content}
                     </p>
-                    <div className="flex items-center justify-between text-xs font-light tracking-wide text-gray-400 pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-xs font-light tracking-wide text-gray-500 pt-4 border-t border-white/10">
                       <div className="flex items-center space-x-2">
                         <Eye className="h-4 w-4" />
                         <span>{authorSequence[seqIndex]._count.views} AUFRUFE</span>
@@ -691,7 +692,7 @@ export default function StoriesComponent() {
                     {authorSequence.length > 1 && (
                       <div className="flex items-center justify-between pt-2">
                         <button
-                          className="text-xs font-light tracking-widest text-gray-600 hover:text-gray-800 uppercase disabled:opacity-50"
+                          className="text-xs font-light tracking-widest text-gray-400 hover:text-white uppercase disabled:opacity-50"
                           onClick={() => setSeqIndex(i => Math.max(0, i - 1))}
                           disabled={seqIndex === 0}
                         >
@@ -701,7 +702,7 @@ export default function StoriesComponent() {
                           {seqIndex + 1}/{authorSequence.length}
                         </div>
                         <button
-                          className="text-xs font-light tracking-widest text-gray-600 hover:text-gray-800 uppercase disabled:opacity-50"
+                          className="text-xs font-light tracking-widest text-gray-400 hover:text-white uppercase disabled:opacity-50"
                           onClick={() => setSeqIndex(i => Math.min(authorSequence.length - 1, i + 1))}
                           disabled={seqIndex === authorSequence.length - 1}
                         >
@@ -716,22 +717,22 @@ export default function StoriesComponent() {
                       <img
                         src={selectedStory.image}
                         alt="Story"
-                        className="w-full h-[60vh] md:h-[65vh] object-cover rounded-none"
+                        className="w-full h-full object-contain md:object-cover md:h-[60vh] flex-1 min-h-0"
                       />
                     ) : selectedStory.video ? (
                       <video
                         src={selectedStory.video}
-                        className="w-full h-[60vh] md:h-[65vh] object-cover rounded-none"
+                        className="w-full h-full object-contain md:object-cover md:h-[60vh] flex-1 min-h-0"
                         controls
                         autoPlay
                         muted
                         playsInline
                       />
                     ) : null}
-                    <p className="text-sm font-light tracking-wide text-gray-700 leading-relaxed">
+                    <p className="text-sm font-light tracking-wide text-gray-300 leading-relaxed">
                       {selectedStory.content}
                     </p>
-                    <div className="flex items-center justify-between text-xs font-light tracking-wide text-gray-400 pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-xs font-light tracking-wide text-gray-500 pt-4 border-t border-white/10">
                       <div className="flex items-center space-x-2">
                         <Eye className="h-4 w-4" />
                         <span>{selectedStory._count.views} AUFRUFE</span>

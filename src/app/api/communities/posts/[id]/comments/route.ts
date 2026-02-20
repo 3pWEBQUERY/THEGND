@@ -78,9 +78,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const body = await req.json().catch(() => ({}))
     const content = String(body?.content || '').trim().slice(0, 10000)
-    if (!content) return NextResponse.json({ error: 'Kommentar darf nicht leer sein' }, { status: 400 })
-
+    const type = ['TEXT', 'LINK', 'IMAGE', 'VIDEO'].includes(body?.type) ? body.type : 'TEXT'
     const parentId = body?.parentId || null
+    const linkUrl = type === 'LINK' ? String(body?.linkUrl || '').trim().slice(0, 2000) || null : null
+    const images = type === 'IMAGE' && Array.isArray(body?.images) ? JSON.stringify(body.images.slice(0, 10)) : null
+    const videoUrl = type === 'VIDEO' ? String(body?.videoUrl || '').trim().slice(0, 2000) || null : null
+
+    // Validate based on type
+    if (type === 'TEXT' && !content) return NextResponse.json({ error: 'Kommentar darf nicht leer sein' }, { status: 400 })
+    if (type === 'LINK' && !linkUrl) return NextResponse.json({ error: 'Link URL ist erforderlich' }, { status: 400 })
+    if (type === 'IMAGE' && !images) return NextResponse.json({ error: 'Mindestens ein Bild ist erforderlich' }, { status: 400 })
+    if (type === 'VIDEO' && !videoUrl) return NextResponse.json({ error: 'Video URL ist erforderlich' }, { status: 400 })
 
     // Verify parent exists and belongs to this post
     if (parentId) {
@@ -88,8 +96,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       if (!parent || parent.postId !== postId) return NextResponse.json({ error: 'Ungültiger Parent-Kommentar' }, { status: 400 })
     }
 
-    const comment = await prisma.communityComment.create({
-      data: { postId, authorId: userId, content, parentId, score: 1 },
+    const comment = await (prisma as any).communityComment.create({
+      data: { postId, authorId: userId, content, type, linkUrl, images, videoUrl, parentId, score: 1 },
       include: {
         author: { select: { id: true, email: true, karma: true, profile: { select: { displayName: true, avatar: true } } } },
       },

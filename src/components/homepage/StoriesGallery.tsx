@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Play, X } from 'lucide-react'
+import { getProfileUrl } from '@/lib/validations'
 
 type StoryItem = {
   id: string
@@ -12,7 +14,7 @@ type StoryItem = {
   createdAt: string
   expiresAt?: string
   authorId?: string
-  author: { displayName: string | null; email: string; avatar?: string | null }
+  author: { displayName: string | null; email: string; avatar?: string | null; userType?: string | null }
   _count?: { views: number }
 }
 
@@ -210,17 +212,18 @@ export default function StoriesGallery({ userType, q }: { userType?: string; q?:
     }
     const current = authorSequence[seqIndex]
     if (!current) return
-    // Only reset when switching to a new item
-    if (lastItemIdRef.current !== current.id) {
+    // Always reset progress when switching to a new item
+    const isNewItem = lastItemIdRef.current !== current.id
+    if (isNewItem) {
       setProgress(0)
       lastItemIdRef.current = current.id
     }
     if (autoAdvancePaused || reducedMotion) return
     if (current.image) {
       // advance after 10s for images
-      // kick off progress animation for 10s
       const total = 10000
-      const startAt = Date.now() - Math.round((progress / 100) * total)
+      // When switching items, always start fresh from 0
+      const startAt = isNewItem ? Date.now() : Date.now() - Math.round((progress / 100) * total)
       progressStartRef.current = startAt
       const tick = () => {
         if (!progressStartRef.current) return
@@ -390,8 +393,8 @@ export default function StoriesGallery({ userType, q }: { userType?: string; q?:
     if (!viewDialogOpen) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setViewDialogOpen(false)
-      if (e.key === 'ArrowLeft') setSeqIndex((i) => Math.max(0, i - 1))
-      if (e.key === 'ArrowRight') setSeqIndex((i) => Math.min((authorSequence.length || 1) - 1, i + 1))
+      if (e.key === 'ArrowLeft') { lastItemIdRef.current = null; setSeqIndex((i) => Math.max(0, i - 1)) }
+      if (e.key === 'ArrowRight') { lastItemIdRef.current = null; setSeqIndex((i) => Math.min((authorSequence.length || 1) - 1, i + 1)) }
     }
     document.addEventListener('keydown', onKey)
     const prevOverflow = document.body.style.overflow
@@ -680,22 +683,33 @@ export default function StoriesGallery({ userType, q }: { userType?: string; q?:
         {/* Story View Dialog */}
         {viewDialogOpen && selectedStory && (
           <div
-            className="fixed inset-0 bg-black/60 bg-opacity-50 flex items-center justify-center z-50 p-6"
+            className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[10020] p-0 md:p-6"
             onClick={() => setViewDialogOpen(false)}
           >
-            <div className="bg-white w-full max-w-3xl h-[85vh] overflow-hidden rounded-none" onClick={(e) => e.stopPropagation()}>
-              <div className="p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <div className="text-sm font-light tracking-wide text-gray-800">
-                      {(selectedStory.author.displayName ?? selectedStory.author.email.split('@')[0]).toUpperCase()}
-                    </div>
-                    <div className="text-xs font-light tracking-wide text-gray-400 mt-1">
-                      {formatTimeRemaining(selectedStory.expiresAt) ?? timeAgoISO(selectedStory.createdAt)}
+            <div className="bg-gray-950/95 w-full h-full md:w-full md:max-w-3xl md:h-[85vh] overflow-y-auto overflow-x-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="p-4 md:p-8 flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4 md:mb-6">
+                  <div className="flex items-center space-x-3">
+                    <Link href={getProfileUrl({ id: selectedStory.authorId || '', userType: selectedStory.author.userType || 'MEMBER', displayName: selectedStory.author.displayName })}>
+                      {selectedStory.author.avatar ? (
+                        <img src={selectedStory.author.avatar} alt="" className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover" />
+                      ) : (
+                        <div className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-gray-800 flex items-center justify-center text-sm font-light tracking-widest text-gray-300">
+                          {(selectedStory.author.displayName || selectedStory.author.email)[0].toUpperCase()}
+                        </div>
+                      )}
+                    </Link>
+                    <div>
+                      <Link href={getProfileUrl({ id: selectedStory.authorId || '', userType: selectedStory.author.userType || 'MEMBER', displayName: selectedStory.author.displayName })} className="text-sm font-light tracking-wide text-white hover:text-pink-400 transition-colors">
+                        {(selectedStory.author.displayName ?? selectedStory.author.email.split('@')[0]).toUpperCase()}
+                      </Link>
+                      <div className="text-xs font-light tracking-wide text-gray-500 mt-0.5">
+                        {formatTimeRemaining(selectedStory.expiresAt) ?? timeAgoISO(selectedStory.createdAt)}
+                      </div>
                     </div>
                   </div>
                   <button
-                    className="text-gray-500 hover:text-white transition-colors p-2 rounded-full hover:bg-[var(--brand-pink)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-pink)]/40"
+                    className="text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10 focus:outline-none"
                     onClick={() => setViewDialogOpen(false)}
                     aria-label="Viewer schließen"
                   >
@@ -706,19 +720,20 @@ export default function StoriesGallery({ userType, q }: { userType?: string; q?:
                 {authorSequence.length > 0 ? (
                   <>
                     {/* Segmented progress bar */}
-                    <div className="w-full flex items-center gap-1 mb-2" aria-label="Story Fortschrittsanzeige">
+                    <div className="w-full flex items-center gap-1 mb-3" aria-label="Story Fortschrittsanzeige">
                       {authorSequence.map((_, i) => (
                         <div key={i} className="flex-1">
                           <div
-                            className="h-1 bg-gray-200 overflow-hidden cursor-pointer"
+                            className="h-1 bg-white/10 overflow-hidden cursor-pointer"
                             role="button"
                             aria-label={`Segment ${i + 1} von ${authorSequence.length}${i === seqIndex ? ' – aktuell' : ''}`}
                             aria-current={i === seqIndex ? 'step' : undefined}
                             tabIndex={0}
-                            onClick={() => setSeqIndex(i)}
+                            onClick={() => { lastItemIdRef.current = null; setSeqIndex(i); }}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault()
+                                lastItemIdRef.current = null
                                 setSeqIndex(i)
                               }
                             }}
@@ -733,7 +748,6 @@ export default function StoriesGallery({ userType, q }: { userType?: string; q?:
                         </div>
                       ))}
                     </div>
-                    {/* SR-only live region for screen readers */}
                     <div className="sr-only" aria-live="polite">
                       {(
                         authorSequence[seqIndex].author.displayName ?? authorSequence[seqIndex].author.email.split('@')[0]
@@ -741,7 +755,7 @@ export default function StoriesGallery({ userType, q }: { userType?: string; q?:
                     </div>
                     {(authorSequence[seqIndex].image || authorSequence[seqIndex].video) ? (
                       <div
-                        className="w-full"
+                        className="flex-1 min-h-0 w-full"
                         onMouseEnter={() => setAutoAdvancePaused(true)}
                         onMouseLeave={() => setAutoAdvancePaused(false)}
                         onTouchStart={(e) => {
@@ -760,23 +774,22 @@ export default function StoriesGallery({ userType, q }: { userType?: string; q?:
                           touchStartY.current = null
                           touchStartAt.current = null
                           if (dt < 600 && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+                            lastItemIdRef.current = null
                             if (dx < 0) {
-                              // swipe left -> next
                               setSeqIndex((i) => (i + 1 < authorSequence.length ? i + 1 : i))
                             } else {
-                              // swipe right -> prev
                               setSeqIndex((i) => (i - 1 >= 0 ? i - 1 : i))
                             }
                           }
                         }}
                       >
                         {authorSequence[seqIndex].image ? (
-                          <div className="relative w-full h-[60vh] md:h-[65vh]">
+                          <div className="relative w-full h-full md:h-[60vh]">
                             <Image
                               src={authorSequence[seqIndex].image!}
                               alt={authorSequence[seqIndex].content}
                               fill
-                              className="object-cover rounded-none"
+                              className="object-contain md:object-cover rounded-none"
                               priority
                               fetchPriority="high"
                               sizes="100vw"
@@ -786,7 +799,7 @@ export default function StoriesGallery({ userType, q }: { userType?: string; q?:
                           <video
                             key={authorSequence[seqIndex].id}
                             src={authorSequence[seqIndex].video!}
-                            className="w-full h-[60vh] md:h-[65vh] object-cover rounded-none"
+                            className="w-full h-full object-contain md:object-cover md:h-[60vh] rounded-none"
                             controls
                             autoPlay
                             muted
@@ -819,24 +832,26 @@ export default function StoriesGallery({ userType, q }: { userType?: string; q?:
                         )}
                       </div>
                     ) : (
-                      <div className="w-full h-[60vh] md:h-[65vh] bg-gray-200 flex items-center justify-center text-gray-500">
-                        Kein Medium verfügbar
+                      <div className="w-full flex-1 min-h-0 flex items-center justify-center" style={{ minHeight: '40vh' }}>
+                        <p className="text-lg text-gray-300 font-light text-center px-4">{authorSequence[seqIndex].content}</p>
                       </div>
                     )}
-                    <p className="text-sm font-light tracking-wide text-gray-700 leading-relaxed mt-4">
-                      {authorSequence[seqIndex].content}
-                    </p>
-                    <div className="flex items-center justify-between text-xs font-light tracking-wide text-gray-400 pt-4 border-t border-gray-100">
+                    {authorSequence[seqIndex].content && (authorSequence[seqIndex].image || authorSequence[seqIndex].video) && (
+                      <p className="text-sm font-light tracking-wide text-gray-300 leading-relaxed mt-3">
+                        {authorSequence[seqIndex].content}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between text-xs font-light tracking-wide text-gray-500 pt-4 border-t border-white/10 mt-3">
                       <div className="flex items-center space-x-2">
                         <span>{authorSequence[seqIndex]._count?.views ?? 0} AUFRUFE</span>
                       </div>
                       <span>{new Date(authorSequence[seqIndex].createdAt).toLocaleDateString('de-DE')}</span>
                     </div>
                     {authorSequence.length > 1 && (
-                      <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center justify-between pt-3">
                         <button
-                          className="text-xs font-light tracking-widest text-gray-600 hover:text-gray-800 uppercase disabled:opacity-50"
-                          onClick={() => setSeqIndex(i => Math.max(0, i - 1))}
+                          className="text-[10px] font-light tracking-widest uppercase bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 disabled:opacity-30 transition-colors"
+                          onClick={() => { lastItemIdRef.current = null; setSeqIndex(i => Math.max(0, i - 1)); }}
                           disabled={seqIndex === 0}
                         >
                           ZURÜCK
@@ -845,8 +860,8 @@ export default function StoriesGallery({ userType, q }: { userType?: string; q?:
                           {seqIndex + 1}/{authorSequence.length}
                         </div>
                         <button
-                          className="text-xs font-light tracking-widest text-gray-600 hover:text-gray-800 uppercase disabled:opacity-50"
-                          onClick={() => setSeqIndex(i => Math.min(authorSequence.length - 1, i + 1))}
+                          className="text-[10px] font-light tracking-widest uppercase bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 disabled:opacity-30 transition-colors"
+                          onClick={() => { lastItemIdRef.current = null; setSeqIndex(i => Math.min(authorSequence.length - 1, i + 1)); }}
                           disabled={seqIndex === authorSequence.length - 1}
                         >
                           WEITER
@@ -857,29 +872,35 @@ export default function StoriesGallery({ userType, q }: { userType?: string; q?:
                 ) : (
                   <>
                     {selectedStory.image ? (
-                      <img
-                        src={selectedStory.image}
-                        alt={selectedStory.content}
-                        className="w-full h-[60vh] md:h-[65vh] object-cover rounded-none"
-                      />
+                      <div className="relative w-full flex-1 min-h-0 md:h-[60vh]">
+                        <Image
+                          src={selectedStory.image}
+                          alt={selectedStory.content}
+                          fill
+                          className="object-contain md:object-cover rounded-none"
+                          sizes="100vw"
+                        />
+                      </div>
                     ) : selectedStory.video ? (
                       <video
                         src={selectedStory.video}
-                        className="w-full h-[60vh] md:h-[65vh] object-cover rounded-none"
+                        className="w-full h-full object-contain md:object-cover md:h-[60vh] flex-1 min-h-0 rounded-none"
                         controls
                         autoPlay
                         muted
                         playsInline
                       />
                     ) : (
-                      <div className="w-full h-[60vh] md:h-[65vh] bg-gray-200 flex items-center justify-center text-gray-500">
-                        Kein Medium verfügbar
+                      <div className="w-full flex-1 min-h-0 flex items-center justify-center" style={{ minHeight: '40vh' }}>
+                        <p className="text-lg text-gray-300 font-light text-center px-4">{selectedStory.content}</p>
                       </div>
                     )}
-                    <p className="text-sm font-light tracking-wide text-gray-700 leading-relaxed mt-4">
-                      {selectedStory.content}
-                    </p>
-                    <div className="flex items-center justify-between text-xs font-light tracking-wide text-gray-400 pt-4 border-t border-gray-100">
+                    {selectedStory.content && (selectedStory.image || selectedStory.video) && (
+                      <p className="text-sm font-light tracking-wide text-gray-300 leading-relaxed mt-3">
+                        {selectedStory.content}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between text-xs font-light tracking-wide text-gray-500 pt-4 border-t border-white/10 mt-3">
                       <div className="flex items-center space-x-2">
                         <span>{selectedStory._count?.views ?? 0} AUFRUFE</span>
                       </div>

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { MessageSquare, Bookmark, Share2, Flag, Pin, Lock, ExternalLink, Image as ImageIcon, BarChart2 } from 'lucide-react'
 import VoteButtons from './VoteButtons'
 import { cn } from '@/lib/utils'
+import { getProfileUrl } from '@/lib/validations'
 import { formatDistanceToNowStrict } from 'date-fns'
 import { de } from 'date-fns/locale'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -25,7 +26,7 @@ export interface PostCardData {
   userVote?: 'UP' | 'DOWN' | null
   isSaved?: boolean
   flair?: { id: string; name: string; color: string; textColor: string } | null
-  author: { id: string; name?: string | null; displayName?: string | null; avatarUrl?: string | null }
+  author: { id: string; name?: string | null; displayName?: string | null; avatarUrl?: string | null; userType?: string | null }
   community: { slug: string; name: string; icon?: string | null }
   pollOptions?: { id: string; text: string; _count?: { votes: number } }[]
   pollTotalVotes?: number
@@ -99,14 +100,24 @@ export default function PostCard({ post, showCommunity = true, onSave }: PostCar
                 <span>·</span>
               </>
             )}
-            <span>
+            <span className="inline-flex items-center gap-1">
               von{' '}
-              <Link href={`/profile/${post.author.id}`} className="hover:underline">
+              <Link href={getProfileUrl({ id: post.author.id, userType: post.author.userType || 'MEMBER', displayName: post.author.displayName })} className="hover:underline inline-flex items-center gap-1">
+                {post.author.avatarUrl ? (
+                  <Avatar className="h-4 w-4">
+                    <AvatarImage src={post.author.avatarUrl} />
+                    <AvatarFallback className="text-[8px]">{(post.author.displayName || 'A')[0]}</AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <Avatar className="h-4 w-4">
+                    <AvatarFallback className="text-[8px] bg-pink-100 text-pink-600">{(post.author.displayName || 'A')[0].toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                )}
                 {authorName}
               </Link>
             </span>
             <span>·</span>
-            <span>{timeAgo}</span>
+            <span suppressHydrationWarning>{timeAgo}</span>
             {post.isPinned && (
               <>
                 <span>·</span>

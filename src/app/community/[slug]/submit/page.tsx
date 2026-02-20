@@ -1,5 +1,6 @@
 import MinimalistNavigation from '@/components/homepage/MinimalistNavigation'
 import Footer from '@/components/homepage/Footer'
+import CommunityHero from '@/components/community/CommunityHero'
 import PostForm from '@/components/community/PostForm'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
@@ -61,6 +62,7 @@ export default async function SubmitPostPage({ params }: Props) {
   return (
     <>
       <MinimalistNavigation />
+      <CommunityHero title="NEUER BEITRAG" subtitle={`Erstelle einen neuen Beitrag in c/${community.name}`} />
       <div className="max-w-2xl mx-auto px-4 py-6">
         <Link
           href={`/community/${slug}`}

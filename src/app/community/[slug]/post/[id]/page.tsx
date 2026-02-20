@@ -1,5 +1,6 @@
 import MinimalistNavigation from '@/components/homepage/MinimalistNavigation'
 import Footer from '@/components/homepage/Footer'
+import CommunityHeader from '@/components/community/CommunityHeader'
 import PostDetailClient from './PostDetailClient'
 import CommunitySidebar from '@/components/community/CommunitySidebar'
 import { prisma } from '@/lib/prisma'
@@ -23,14 +24,14 @@ export default async function PostDetailPage({ params }: Props) {
     where: { id },
     include: {
       author: {
-        select: { id: true, name: true, displayName: true, avatarUrl: true, userType: true },
+        select: { id: true, email: true, userType: true, profile: { select: { displayName: true, avatar: true } } },
       },
       community: {
         include: {
           rules: { orderBy: { sortOrder: 'asc' } },
           members: {
             where: { OR: [{ role: 'OWNER' }, { role: 'MODERATOR' }] },
-            include: { user: { select: { id: true, name: true, displayName: true } } },
+            include: { user: { select: { id: true, email: true, userType: true, profile: { select: { displayName: true, avatar: true } } } } },
           },
         },
       },
@@ -44,6 +45,15 @@ export default async function PostDetailPage({ params }: Props) {
 
   if (!post || post.community.slug !== slug) notFound()
   if (post.isDeleted || post.isRemoved) notFound()
+
+  // Normalize author from profile-based select
+  const normalizeAuthor = (a: any) => ({
+    id: a.id,
+    displayName: a.profile?.displayName || null,
+    avatarUrl: a.profile?.avatar || null,
+    userType: a.userType || null,
+  })
+  post.author = normalizeAuthor(post.author)
 
   // Get user's vote on post
   let userVote: 'UP' | 'DOWN' | null = null
@@ -73,7 +83,7 @@ export default async function PostDetailPage({ params }: Props) {
     where: { postId: id },
     include: {
       author: {
-        select: { id: true, name: true, displayName: true, avatarUrl: true, userType: true },
+        select: { id: true, email: true, userType: true, profile: { select: { displayName: true, avatar: true } } },
       },
     },
     orderBy: { createdAt: 'asc' },
@@ -96,6 +106,7 @@ export default async function PostDetailPage({ params }: Props) {
   for (const c of comments) {
     commentMap.set(c.id, {
       ...c,
+      author: normalizeAuthor(c.author),
       createdAt: c.createdAt.toISOString(),
       editedAt: c.editedAt?.toISOString() ?? null,
       userVote: commentVotes[c.id] ?? null,
@@ -110,6 +121,8 @@ export default async function PostDetailPage({ params }: Props) {
       rootComments.push(node)
     }
   }
+  // Show newest root comments first
+  rootComments.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   // Membership check
   let membership = null
@@ -122,6 +135,16 @@ export default async function PostDetailPage({ params }: Props) {
   const moderators = post.community.members.filter(
     (m: any) => m.role === 'OWNER' || m.role === 'MODERATOR',
   )
+
+  // Fetch recent members with avatars for sidebar display
+  const recentMembers = await (prisma as any).communityMember.findMany({
+    where: { communityId: post.communityId },
+    take: 5,
+    orderBy: { joinedAt: 'desc' },
+    include: {
+      user: { select: { id: true, profile: { select: { avatar: true, displayName: true } } } },
+    },
+  })
 
   // Increment view count
   await (prisma as any).communityPost.update({
@@ -142,6 +165,22 @@ export default async function PostDetailPage({ params }: Props) {
   return (
     <>
       <MinimalistNavigation />
+      <CommunityHeader
+        community={{
+          id: post.community.id,
+          name: post.community.name,
+          slug: post.community.slug,
+          description: post.community.description,
+          icon: post.community.icon,
+          banner: post.community.banner,
+          type: post.community.type,
+          memberCount: post.community.memberCount,
+          createdAt: post.community.createdAt?.toISOString?.() ?? new Date().toISOString(),
+          isNSFW: post.community.isNSFW,
+        }}
+        membership={membership ? { role: membership.role } : null}
+        isAuthenticated={!!userId}
+      />
       <div className="max-w-6xl mx-auto px-4 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-4">
           <PostDetailClient
@@ -189,6 +228,11 @@ export default async function PostDetailPage({ params }: Props) {
             }}
             rules={post.community.rules}
             moderators={moderators}
+            recentMembers={recentMembers.map((m: any) => ({
+              id: m.user.id,
+              avatar: m.user.profile?.avatar || null,
+              displayName: m.user.profile?.displayName || null,
+            }))}
             isMember={!!membership}
           />
         </div>

@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import VoteButtons from '@/components/community/VoteButtons'
 import CommentTree, { CommentData } from '@/components/community/CommentTree'
+import CommentForm from '@/components/community/CommentForm'
 import PollView from '@/components/community/PollView'
 import { cn } from '@/lib/utils'
+import { getProfileUrl } from '@/lib/validations'
 import { formatDistanceToNowStrict } from 'date-fns'
 import { de } from 'date-fns/locale'
 import {
@@ -40,7 +42,7 @@ interface PostDetail {
   userVote?: 'UP' | 'DOWN' | null
   isSaved?: boolean
   flair?: { id: string; name: string; color: string; textColor: string } | null
-  author: { id: string; name?: string | null; displayName?: string | null; avatarUrl?: string | null }
+  author: { id: string; name?: string | null; displayName?: string | null; avatarUrl?: string | null; userType?: string | null }
   community: { slug: string; name: string; icon?: string | null }
   pollOptions?: { id: string; text: string; _count: { votes: number } }[]
   pollTotalVotes?: number
@@ -64,10 +66,10 @@ export default function PostDetailClient({
 }: PostDetailClientProps) {
   const router = useRouter()
   const [saved, setSaved] = useState(post.isSaved ?? false)
-  const [newComment, setNewComment] = useState('')
-  const [submitting, setSubmitting] = useState(false)
   const [showReport, setShowReport] = useState(false)
   const [reportReason, setReportReason] = useState('')
+  const [shareToast, setShareToast] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const authorName = post.author.displayName || post.author.name || 'Anonym'
   const timeAgo = formatDistanceToNowStrict(new Date(post.createdAt), { locale: de, addSuffix: true })
@@ -77,24 +79,6 @@ export default function PostDetailClient({
     if (!isAuthenticated) return
     await fetch(`/api/communities/posts/${post.id}/save`, { method: 'POST' })
     setSaved(!saved)
-  }
-
-  const submitComment = async () => {
-    if (!newComment.trim() || submitting) return
-    setSubmitting(true)
-    try {
-      const res = await fetch(`/api/communities/posts/${post.id}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: newComment.trim() }),
-      })
-      if (res.ok) {
-        setNewComment('')
-        router.refresh()
-      }
-    } finally {
-      setSubmitting(false)
-    }
   }
 
   const submitReport = async () => {
@@ -108,8 +92,25 @@ export default function PostDetailClient({
     setReportReason('')
   }
 
+  const sharePost = async () => {
+    const url = window.location.href
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      const ta = document.createElement('textarea')
+      ta.value = url
+      ta.style.position = 'fixed'
+      ta.style.opacity = '0'
+      document.body.appendChild(ta)
+      ta.select()
+      document.execCommand('copy')
+      document.body.removeChild(ta)
+    }
+    setShareToast(true)
+    setTimeout(() => setShareToast(false), 2000)
+  }
+
   const deletePost = async () => {
-    if (!confirm('Beitrag wirklich löschen?')) return
     const res = await fetch(`/api/communities/posts/${post.id}`, { method: 'DELETE' })
     if (res.ok) router.push(`/community/${post.community.slug}`)
   }
@@ -157,14 +158,24 @@ export default function PostDetailClient({
                 c/{post.community.name}
               </Link>
               <span>·</span>
-              <span>
+              <span className="inline-flex items-center gap-1">
                 von{' '}
-                <Link href={`/profile/${post.author.id}`} className="hover:underline">
+                <Link href={getProfileUrl({ id: post.author.id, userType: post.author.userType || 'MEMBER', displayName: post.author.displayName })} className="hover:underline inline-flex items-center gap-1">
+                  {post.author.avatarUrl ? (
+                    <Avatar className="h-4 w-4">
+                      <AvatarImage src={post.author.avatarUrl} />
+                      <AvatarFallback className="text-[8px]">{(post.author.displayName || 'A')[0]}</AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <Avatar className="h-4 w-4">
+                      <AvatarFallback className="text-[8px] bg-pink-100 text-pink-600">{(post.author.displayName || 'A')[0].toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  )}
                   {authorName}
                 </Link>
               </span>
               <span>·</span>
-              <span>{timeAgo}</span>
+              <span suppressHydrationWarning>{timeAgo}</span>
               <span>·</span>
               <span className="flex items-center gap-0.5">
                 <Eye className="h-3 w-3" />
@@ -305,15 +316,20 @@ export default function PostDetailClient({
                 {saved ? 'Gespeichert' : 'Speichern'}
               </button>
 
-              <button
-                onClick={() => {
-                  navigator.clipboard?.writeText(window.location.href)
-                }}
-                className="flex items-center gap-1 hover:text-gray-700"
-              >
-                <Share2 className="h-3.5 w-3.5" />
-                Teilen
-              </button>
+              <div className="relative">
+                <button
+                  onClick={sharePost}
+                  className="flex items-center gap-1 hover:text-gray-700"
+                >
+                  <Share2 className="h-3.5 w-3.5" />
+                  Teilen
+                </button>
+                {shareToast && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-900 text-white text-[10px] px-3 py-1.5 whitespace-nowrap z-50 shadow-lg">
+                    Link kopiert!
+                  </div>
+                )}
+              </div>
 
               {isAuthenticated && !isAuthor && (
                 <button
@@ -326,13 +342,34 @@ export default function PostDetailClient({
               )}
 
               {isAuthor && (
-                <button
-                  onClick={deletePost}
-                  className="flex items-center gap-1 hover:text-red-600"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  Löschen
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
+                    className="flex items-center gap-1 hover:text-red-600"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Löschen
+                  </button>
+                  {showDeleteConfirm && (
+                    <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 shadow-lg p-3 z-50 min-w-[220px]">
+                      <p className="text-xs text-gray-700 mb-2 normal-case tracking-normal">Beitrag wirklich löschen?</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={deletePost}
+                          className="text-[10px] uppercase tracking-widest bg-red-500 hover:bg-red-600 text-white px-3 py-1.5"
+                        >
+                          Löschen
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteConfirm(false)}
+                          className="text-[10px] uppercase tracking-widest text-gray-500 hover:text-gray-700 px-3 py-1.5"
+                        >
+                          Abbrechen
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
 
@@ -369,24 +406,10 @@ export default function PostDetailClient({
 
       {/* Comment input */}
       {isAuthenticated && isMember && !post.isLocked && (
-        <div className="border border-gray-200 bg-white p-4">
-          <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Kommentar schreiben..."
-            className="w-full border border-gray-200 p-3 text-sm resize-y min-h-[80px] focus:outline-none focus:border-pink-400"
-            rows={3}
-          />
-          <div className="flex justify-end mt-2">
-            <button
-              onClick={submitComment}
-              disabled={submitting || !newComment.trim()}
-              className="bg-pink-500 hover:bg-pink-600 text-white text-[10px] font-light tracking-widest px-4 py-2 uppercase disabled:opacity-50"
-            >
-              {submitting ? '...' : 'Kommentieren'}
-            </button>
-          </div>
-        </div>
+        <CommentForm
+          postId={post.id}
+          onSuccess={() => router.refresh()}
+        />
       )}
 
       {post.isLocked && (

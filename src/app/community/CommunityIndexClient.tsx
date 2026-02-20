@@ -191,16 +191,24 @@ export default function CommunityIndexClient({
 
             {/* CTA */}
             {isAuthenticated && (
-              <div className="border border-gray-200 bg-white p-4 text-center">
-                <p className="text-sm text-gray-600 font-light mb-3">
-                  Erstelle deine eigene Community
-                </p>
-                <Link
-                  href="/community/create"
-                  className="block w-full bg-pink-500 hover:bg-pink-600 text-white text-[10px] font-light tracking-widest py-2 uppercase"
-                >
-                  Community erstellen
-                </Link>
+              <div
+                className="relative border border-gray-200 overflow-hidden flex flex-col items-center justify-end text-center"
+                style={{ minHeight: 320 }}
+              >
+                <img
+                  src="/circle.jpg"
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/30" />
+                <div className="relative z-10 w-full p-6">
+                  <Link
+                    href="/community/create"
+                    className="block w-full bg-pink-500 hover:bg-pink-600 text-white text-[10px] font-light tracking-widest py-3 uppercase"
+                  >
+                    Community erstellen
+                  </Link>
+                </div>
               </div>
             )}
           </div>

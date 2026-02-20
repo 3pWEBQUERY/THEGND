@@ -16,7 +16,7 @@ export default async function AcpCommunitiesPage() {
   const communities = await (prisma as any).community.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      creator: { select: { id: true, name: true, displayName: true, email: true } },
+      creator: { select: { id: true, email: true, profile: { select: { displayName: true } } } },
       _count: { select: { members: true, posts: true } },
     },
     take: 100,
@@ -42,7 +42,7 @@ export default async function AcpCommunitiesPage() {
             isNSFW: c.isNSFW,
             memberCount: c._count.members,
             postCount: c._count.posts,
-            creatorName: c.creator.displayName || c.creator.name || c.creator.email,
+            creatorName: c.creator.profile?.displayName || c.creator.email,
             createdAt: c.createdAt.toISOString(),
           }))}
           stats={{ totalCommunities, totalPosts, totalComments, openReports }}

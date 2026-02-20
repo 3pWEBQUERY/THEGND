@@ -1,5 +1,6 @@
 import MinimalistNavigation from '@/components/homepage/MinimalistNavigation'
 import Footer from '@/components/homepage/Footer'
+import CommunityHero from '@/components/community/CommunityHero'
 import CommunityCreateForm from '@/components/community/CommunityCreateForm'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -16,6 +17,7 @@ export default async function CommunityCreatePage() {
   return (
     <>
       <MinimalistNavigation />
+      <CommunityHero title="CREATE COMMUNITY" subtitle="Erstelle deine eigene Community und bringe Gleichgesinnte zusammen." />
       <div className="max-w-xl mx-auto px-4 py-8">
         <Link
           href="/community"

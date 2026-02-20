@@ -240,6 +240,10 @@ model CommunityComment {
   parent    CommunityComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   children  CommunityComment[] @relation("CommentReplies")
   content   String    // markdown
+  type      String    @default("TEXT") // TEXT, LINK, IMAGE, VIDEO
+  linkUrl   String?
+  images    String?   // JSON array of URLs
+  videoUrl  String?
   score     Int       @default(0) // cached
   isRemoved Boolean   @default(false)
   isDeleted Boolean   @default(false)
