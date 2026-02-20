@@ -288,7 +288,7 @@ export function CommentItem({
                     className="flex items-center gap-1 hover:text-gray-700"
                   >
                     <MessageSquare className="h-3 w-3" />
-                    Antworten
+                    <span className="hidden md:inline">Antworten</span>
                   </button>
                 )}
 
@@ -298,7 +298,7 @@ export function CommentItem({
                     className="flex items-center gap-1 hover:text-gray-700"
                   >
                     <Share2 className="h-3 w-3" />
-                    Teilen
+                    <span className="hidden md:inline">Teilen</span>
                   </button>
                   {shareToast && (
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-900 text-white text-[10px] px-3 py-1.5 whitespace-nowrap z-50 shadow-lg">
@@ -314,7 +314,7 @@ export function CommentItem({
                       className="flex items-center gap-1 hover:text-gray-700"
                     >
                       <Pencil className="h-3 w-3" />
-                      Bearbeiten
+                      <span className="hidden md:inline">Bearbeiten</span>
                     </button>
                     <div className="relative">
                       <button
@@ -322,7 +322,7 @@ export function CommentItem({
                         className="flex items-center gap-1 hover:text-red-600"
                       >
                         <Trash2 className="h-3 w-3" />
-                        Löschen
+                        <span className="hidden md:inline">Löschen</span>
                       </button>
                       {showDeleteConfirm && (
                         <div className="absolute bottom-full left-0 mb-2 bg-white border border-gray-200 shadow-lg p-3 z-50 min-w-[220px]">
