@@ -263,7 +263,7 @@ export default function MinimalistNavigation({ darkBg = false }: { darkBg?: bool
                       { href: '/club-studio', label: 'Clubs & Studios', Icon: Building2 },
                       { href: '/stories', label: 'Stories', Icon: BookOpen },
                       { href: '/feed', label: 'Feed', Icon: Rss },
-                      { href: '/forum', label: 'Forum', Icon: MessageSquare },
+                      { href: '/community', label: 'Communities', Icon: MessageSquare },
                       { href: '/jobs', label: 'Jobs', Icon: Briefcase },
                       { href: '/mieten', label: 'Mieten', Icon: Building2 },
                       { href: '/blog', label: 'Blog', Icon: BookOpen },
@@ -424,16 +424,16 @@ export default function MinimalistNavigation({ darkBg = false }: { darkBg?: bool
                               </div>
                             </div>
                           </Link>
-                          <Link href="/forum" className="group block border border-gray-200 hover:border-pink-500 rounded-none overflow-hidden">
+                          <Link href="/community" className="group block border border-gray-200 hover:border-pink-500 rounded-none overflow-hidden">
                             <div style={{ aspectRatio: '9 / 7.7' }} className="relative">
                               {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img src="/Forum-Nav.jpg" alt="Forum" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                              <img src="/Forum-Nav.jpg" alt="Communities" className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/25 to-transparent transition-colors group-hover:from-black/70" />
                               <div className="absolute inset-0 p-3 flex items-end">
                                 <div className="text-left">
-                                  <div className="text-[10px] uppercase tracking-widest text-white">{t('labels.forum', { defaultValue: 'FORUM' })}</div>
-                                  <div className="mt-1 text-white text-sm">Community & Diskussionen</div>
-                                  <span className="mt-3 inline-block text-xs uppercase tracking-widest underline underline-offset-4 text-white">MEHR LESEN</span>
+                                  <div className="text-[10px] uppercase tracking-widest text-white">{t('labels.communities', { defaultValue: 'COMMUNITIES' })}</div>
+                                  <div className="mt-1 text-white text-sm">Communities & Diskussionen</div>
+                                  <span className="mt-3 inline-block text-xs uppercase tracking-widest underline underline-offset-4 text-white">ENTDECKEN</span>
                                 </div>
                               </div>
                             </div>

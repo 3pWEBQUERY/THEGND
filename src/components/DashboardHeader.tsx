@@ -425,13 +425,13 @@ export default function DashboardHeader({ session, activeTab, setActiveTab }: Da
                 </Link>
               )}
               <Link 
-                href="/dashboard?tab=forum"
+                href="/dashboard?tab=community"
                 className={`relative group text-sm font-light tracking-widest uppercase transition-colors ${
-                  activeTab === 'forum' ? 'text-pink-500' : 'text-gray-600 hover:text-pink-500'
+                  activeTab === 'community' ? 'text-pink-500' : 'text-gray-600 hover:text-pink-500'
                 }`}
               >
-                FORUM
-                <span className={`absolute -bottom-1 left-0 h-0.5 bg-pink-500 transition-all duration-300 ${activeTab === 'forum' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
+                COMMUNITIES
+                <span className={`absolute -bottom-1 left-0 h-0.5 bg-pink-500 transition-all duration-300 ${activeTab === 'community' ? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
               </Link>
               {(userType !== 'MEMBER' || hasMembership) && (
                 <Link 

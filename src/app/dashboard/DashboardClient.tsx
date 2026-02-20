@@ -14,6 +14,7 @@ import CommentsComponent from '@/components/CommentsComponent'
 import DashboardHeader from '@/components/DashboardHeader'
 import DashboardMobileNavigation from '@/components/DashboardMobileNavigation'
 import ForumDashboard from '@/components/ForumDashboard'
+import CommunityDashboard from '@/components/community/CommunityDashboard'
 import JobsDashboard from '@/components/jobs/JobsDashboard'
 import RentalsDashboard from '@/components/rentals/RentalsDashboard'
 import GirlsDashboard from '@/components/girls/GirlsDashboard'
@@ -438,6 +439,9 @@ export default function DashboardClient() {
           
           {activeTab === 'forum' && (
             <ForumDashboard />
+          )}
+          {activeTab === 'community' && (
+            <CommunityDashboard />
           )}
           {activeTab === 'blog' && (
             <BlogTabGated session={session} />

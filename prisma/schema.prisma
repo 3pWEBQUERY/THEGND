@@ -69,7 +69,311 @@ model Rental {
   @@map("rentals")
 }
 
-// Feed Groups (user-created discussion groups similar to Facebook)
+// ─── Reddit-style Communities ─────────────────────────────────────────────
+
+enum CommunityType {
+  PUBLIC      // anyone can view and post
+  RESTRICTED  // anyone can view, only members can post
+  PRIVATE     // only members can view and post
+}
+
+enum CommunityMemberRole {
+  OWNER
+  MODERATOR
+  MEMBER
+}
+
+enum CommunityPostType {
+  TEXT
+  LINK
+  IMAGE
+  POLL
+  VIDEO
+}
+
+enum VoteType {
+  UP
+  DOWN
+}
+
+enum BanStatus {
+  TEMPORARY
+  PERMANENT
+}
+
+enum ModActionType {
+  PIN_POST
+  UNPIN_POST
+  REMOVE_POST
+  RESTORE_POST
+  LOCK_POST
+  UNLOCK_POST
+  BAN_USER
+  UNBAN_USER
+  CHANGE_ROLE
+  EDIT_RULES
+  EDIT_SETTINGS
+  REMOVE_COMMENT
+  RESTORE_COMMENT
+  APPROVE_POST
+}
+
+model Community {
+  id          String         @id @default(cuid())
+  name        String
+  slug        String         @unique
+  description String?
+  sidebar     String?        // markdown sidebar content
+  icon        String?        // community avatar URL
+  banner      String?        // header banner URL
+  color       String?        // accent color hex
+  type        CommunityType  @default(PUBLIC)
+  isNSFW      Boolean        @default(false)
+  isArchived  Boolean        @default(false)
+  memberCount Int            @default(1) // cached counter
+  creatorId   String
+  creator     User           @relation("CommunityCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  members     CommunityMember[]
+  posts       CommunityPost[]
+  rules       CommunityRule[]
+  flairs      CommunityFlair[]
+  bans        CommunityBan[]
+  modLog      CommunityModLog[]
+
+  @@index([creatorId])
+  @@index([memberCount(sort: Desc)])
+  @@index([type, isArchived])
+  @@map("communities")
+}
+
+model CommunityMember {
+  id          String               @id @default(cuid())
+  communityId String
+  community   Community            @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        CommunityMemberRole  @default(MEMBER)
+  joinedAt    DateTime             @default(now())
+
+  @@unique([communityId, userId])
+  @@index([userId])
+  @@map("community_members")
+}
+
+model CommunityRule {
+  id          String    @id @default(cuid())
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  @@index([communityId, sortOrder])
+  @@map("community_rules")
+}
+
+model CommunityFlair {
+  id          String    @id @default(cuid())
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  name        String
+  color       String    @default("#6B7280") // gray-500
+  textColor   String    @default("#FFFFFF")
+  createdAt   DateTime  @default(now())
+
+  posts       CommunityPost[]
+
+  @@index([communityId])
+  @@map("community_flairs")
+}
+
+model CommunityPost {
+  id               String            @id @default(cuid())
+  communityId      String
+  community        Community         @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  authorId         String
+  author           User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title            String
+  content          String?           // markdown for TEXT posts
+  linkUrl          String?           // for LINK posts
+  linkPreviewTitle String?
+  linkPreviewImage String?
+  images           String?           // JSON array of URLs for IMAGE posts
+  videoUrl         String?           // for VIDEO posts
+  type             CommunityPostType @default(TEXT)
+  flairId          String?
+  flair            CommunityFlair?   @relation(fields: [flairId], references: [id], onDelete: SetNull)
+  isPinned         Boolean           @default(false)
+  isLocked         Boolean           @default(false)
+  isRemoved        Boolean           @default(false) // mod soft-delete
+  isDeleted        Boolean           @default(false) // author soft-delete
+  score            Int               @default(0)     // cached upvotes - downvotes
+  commentCount     Int               @default(0)     // cached
+  viewCount        Int               @default(0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  votes            Vote[]            @relation("PostVotes")
+  comments         CommunityComment[]
+  pollOptions      PollOption[]
+  savedBy          SavedPost[]
+  reports          CommunityReport[] @relation("ReportedPost")
+
+  @@index([communityId, isPinned, createdAt(sort: Desc)])
+  @@index([communityId, score(sort: Desc)])
+  @@index([authorId, createdAt(sort: Desc)])
+  @@index([isRemoved, isDeleted])
+  @@map("community_posts")
+}
+
+model CommunityComment {
+  id        String    @id @default(cuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    CommunityComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  children  CommunityComment[] @relation("CommentReplies")
+  content   String    // markdown
+  score     Int       @default(0) // cached
+  isRemoved Boolean   @default(false)
+  isDeleted Boolean   @default(false)
+  editedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  votes     Vote[]    @relation("CommentVotes")
+  reports   CommunityReport[] @relation("ReportedComment")
+
+  @@index([postId, parentId, createdAt])
+  @@index([authorId, createdAt(sort: Desc)])
+  @@map("community_comments")
+}
+
+model Vote {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String?
+  post      CommunityPost? @relation("PostVotes", fields: [postId], references: [id], onDelete: Cascade)
+  commentId String?
+  comment   CommunityComment? @relation("CommentVotes", fields: [commentId], references: [id], onDelete: Cascade)
+  type      VoteType
+  createdAt DateTime  @default(now())
+
+  @@unique([userId, postId])
+  @@unique([userId, commentId])
+  @@index([postId, type])
+  @@index([commentId, type])
+  @@map("community_votes")
+}
+
+model PollOption {
+  id        String    @id @default(cuid())
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  text      String
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+
+  votes     PollVote[]
+
+  @@index([postId, sortOrder])
+  @@map("community_poll_options")
+}
+
+model PollVote {
+  id        String     @id @default(cuid())
+  optionId  String
+  option    PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime   @default(now())
+
+  @@unique([optionId, userId])
+  @@index([userId])
+  @@map("community_poll_votes")
+}
+
+model CommunityBan {
+  id          String    @id @default(cuid())
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation("BannedUser", fields: [userId], references: [id], onDelete: Cascade)
+  bannedById  String
+  bannedBy    User      @relation("BanIssuedBy", fields: [bannedById], references: [id], onDelete: Cascade)
+  reason      String?
+  status      BanStatus @default(PERMANENT)
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([communityId, userId])
+  @@index([communityId, userId])
+  @@map("community_bans")
+}
+
+model CommunityModLog {
+  id              String        @id @default(cuid())
+  communityId     String
+  community       Community     @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  moderatorId     String
+  moderator       User          @relation("ModLogModerator", fields: [moderatorId], references: [id], onDelete: Cascade)
+  action          ModActionType
+  targetUserId    String?
+  targetUser      User?         @relation("ModLogTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  targetPostId    String?
+  targetCommentId String?
+  reason          String?
+  metadata        String?       // JSON
+  createdAt       DateTime      @default(now())
+
+  @@index([communityId, createdAt(sort: Desc)])
+  @@map("community_mod_log")
+}
+
+model CommunityReport {
+  id          String     @id @default(cuid())
+  communityId String
+  reporterId  String
+  reporter    User       @relation("CommunityReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  postId      String?
+  post        CommunityPost? @relation("ReportedPost", fields: [postId], references: [id], onDelete: Cascade)
+  commentId   String?
+  comment     CommunityComment? @relation("ReportedComment", fields: [commentId], references: [id], onDelete: Cascade)
+  reason      String
+  ruleId      String?    // optional reference to community rule
+  status      String     @default("OPEN") // OPEN, RESOLVED, DISMISSED
+  resolvedById String?
+  resolvedBy  User?      @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedAt  DateTime?
+  createdAt   DateTime   @default(now())
+
+  @@index([communityId, status])
+  @@index([postId])
+  @@index([commentId])
+  @@map("community_reports")
+}
+
+model SavedPost {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+
+  @@unique([userId, postId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("community_saved_posts")
+}
+
+// Legacy: keep old tables for migration period (will be removed later)
 
 enum GroupPrivacy {
   PUBLIC
@@ -246,6 +550,7 @@ model User {
   onboardingStatus  OnboardingStatus  @default(NOT_STARTED)
   isActive          Boolean           @default(true)
   isModerator       Boolean           @default(false)
+  karma             Int               @default(0) // Reddit-style karma (upvotes - downvotes received)
   // Presence tracking
   lastSeenAt        DateTime?
   createdAt         DateTime          @default(now())
@@ -288,9 +593,24 @@ model User {
   // Feedback submitted by the user
   feedbacks         Feedback[]
 
-  // Feed groups
+  // Feed groups (legacy)
   feedGroupsOwned   FeedGroup[]
   feedGroupMemberships FeedGroupMember[]
+
+  // Communities (Reddit-style)
+  communitiesCreated    Community[]       @relation("CommunityCreator")
+  communityMemberships  CommunityMember[]
+  communityPosts        CommunityPost[]
+  communityComments     CommunityComment[]
+  communityVotes        Vote[]
+  pollVotes             PollVote[]
+  savedPosts            SavedPost[]
+  communityBansReceived CommunityBan[]    @relation("BannedUser")
+  communityBansIssued   CommunityBan[]    @relation("BanIssuedBy")
+  modLogActions         CommunityModLog[] @relation("ModLogModerator")
+  modLogTargets         CommunityModLog[] @relation("ModLogTarget")
+  communityReportsFiled CommunityReport[] @relation("CommunityReporter")
+  communityReportsResolved CommunityReport[] @relation("ReportResolver")
 
   // Gamification
   gamificationProfile GamificationProfile?
@@ -1120,6 +1440,13 @@ enum GamificationEventType {
   BLOG_UPDATE_MAJOR
   COMMENT_VERIFIED
   REGULAR_USE
+  // Community (Reddit) events
+  COMMUNITY_CREATE
+  COMMUNITY_POST
+  COMMUNITY_COMMENT
+  COMMUNITY_VOTE
+  COMMUNITY_RECEIVE_UPVOTE
+  COMMUNITY_MOD_ACTION
 }
 
 model GamificationProfile {

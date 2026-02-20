@@ -40,6 +40,7 @@ export const acpLinks: LinkItem[] = [
   { href: '/acp/messages', label: 'Nachrichten', Icon: MessageSquare },
   { href: '/acp/network', label: 'Netzwerk', Icon: Share2 },
   { href: '/acp/forum', label: 'Forum', Icon: MessageCircle },
+  { href: '/acp/communities', label: 'Communities', Icon: Users },
   { href: '/acp/mail', label: 'Mail', Icon: Mail },
 ]
 

@@ -64,6 +64,30 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/forum',
+        destination: '/community',
+        permanent: true,
+      },
+      {
+        source: '/forum/:path*',
+        destination: '/community',
+        permanent: true,
+      },
+      {
+        source: '/groups',
+        destination: '/community',
+        permanent: true,
+      },
+      {
+        source: '/groups/:path*',
+        destination: '/community',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default withPWA({
