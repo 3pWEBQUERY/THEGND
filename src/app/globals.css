@@ -1,0 +1,401 @@
+@import "tailwindcss";
+/* Leaflet zentral einbinden, damit die Kartenanpassungen weiter unten in
+   dieser Datei durch die Reihenfolge gewinnen — statt über Spezifität. */
+@import "leaflet/dist/leaflet.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   THEGND Design System
+
+   Es gibt genau EINE Stelle im Projekt, an der ein Markenfarbwert steht:
+   die drei HSL-Kanäle unter `:root` (--brand-h / --brand-s / --brand-l).
+   Alles Weitere — Hover, Ring, Glow, Flächen, Verläufe — wird daraus
+   abgeleitet. Komponenten verwenden ausschließlich Tokens, nie Farbwerte.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Emoji-Schriften ans Ende: Inter hat keine Emoji-Glyphen, der Browser fällt
+     pro Zeichen auf die erste Schrift zurück, die sie hat. Apple Color Emoji
+     steht vorn — auf Apple-Geräten erscheinen damit die Apple-Emoji. */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+  --font-display: var(--font-display), Georgia, "Times New Roman", serif;
+
+  /* Fremdmarken — exakt vorgegebene Werte, bewusst nicht aus --brand abgeleitet. */
+  --color-whatsapp: #25d366;
+  --color-telegram: #26a5e4;
+
+  --radius-4xl: 2rem;
+
+  --animate-shimmer: shimmer 2.2s linear infinite;
+  --animate-fade-up: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-marquee: marquee 40s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--success) 70%, transparent); }
+  50% { box-shadow: 0 0 0 6px transparent; }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ── Tokens ───────────────────────────────────────────────────────────────── */
+:root {
+  /* ══════════════════════════════════════════════════════════════════════
+     MARKENFARBE — die einzige Farbdefinition der Marke im ganzen Projekt.
+     Wert ändern = gesamte Anwendung ändert sich (Light wie Dark).
+     ══════════════════════════════════════════════════════════════════════ */
+  --brand-h: 345.3;
+  --brand-s: 82.7%;
+  --brand-l: 40.8%;
+
+  /* Abgeleitete Marken-Töne */
+  --brand: hsl(var(--brand-h) var(--brand-s) var(--brand-l));
+  --brand-hover: hsl(var(--brand-h) var(--brand-s) calc(var(--brand-l) + 6%));
+  --brand-active: hsl(var(--brand-h) var(--brand-s) calc(var(--brand-l) - 5%));
+  --brand-foreground: hsl(0 0% 100%);
+  --brand-soft: hsl(var(--brand-h) var(--brand-s) var(--brand-l) / 0.12);
+  --brand-ring: hsl(var(--brand-h) var(--brand-s) var(--brand-l) / 0.45);
+  --brand-glow: hsl(var(--brand-h) var(--brand-s) var(--brand-l) / 0.32);
+
+  /* Flächen & Text */
+  --background: oklch(0.995 0.002 90);
+  --foreground: oklch(0.18 0.02 300);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.02 300);
+  --muted: oklch(0.965 0.004 300);
+  --muted-foreground: oklch(0.5 0.014 300);
+  --border: oklch(0.912 0.006 300);
+  --input: oklch(0.94 0.006 300);
+  --surface: oklch(0.985 0.003 300);
+  --surface-invert: oklch(0.145 0.022 300);
+  --overlay: oklch(0.15 0.02 300 / 0.55);
+
+  /* Semantik — leitet sich, wo sinnvoll, aus der Marke ab */
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-foreground);
+  --ring: var(--brand);
+  --secondary: oklch(0.96 0.004 300);
+  --secondary-foreground: oklch(0.24 0.02 300);
+  --accent: oklch(0.769 0.188 70.1);
+  --accent-foreground: oklch(0.2 0.03 60);
+  --success: oklch(0.65 0.17 150);
+  --warning: oklch(0.79 0.16 78);
+  --danger: oklch(0.58 0.22 27);
+  --info: oklch(0.68 0.15 240);
+  --rating: oklch(0.82 0.16 82);
+}
+
+.dark {
+  --background: oklch(0.135 0.018 300);
+  --foreground: oklch(0.965 0.004 300);
+  --card: oklch(0.178 0.019 300);
+  --card-foreground: oklch(0.965 0.004 300);
+  --muted: oklch(0.223 0.019 300);
+  --muted-foreground: oklch(0.68 0.014 300);
+  --border: oklch(0.28 0.018 300);
+  --input: oklch(0.253 0.018 300);
+  --surface: oklch(0.163 0.019 300);
+  --surface-invert: oklch(0.105 0.02 300);
+  --overlay: oklch(0.08 0.02 300 / 0.72);
+
+  --secondary: oklch(0.243 0.019 300);
+  --secondary-foreground: oklch(0.95 0.004 300);
+  --accent: oklch(0.828 0.189 84.4);
+  --accent-foreground: oklch(0.18 0.03 60);
+  --success: oklch(0.72 0.17 150);
+  --warning: oklch(0.84 0.16 78);
+  --danger: oklch(0.65 0.22 27);
+  --info: oklch(0.75 0.14 240);
+  --rating: oklch(0.85 0.16 84);
+  /* --brand-* bleibt identisch: eine Marke, eine Farbe. */
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-surface-invert: var(--surface-invert);
+  --color-info: var(--info);
+  --color-rating: var(--rating);
+  --shadow-glow: 0 0 0 1px var(--brand-ring), 0 8px 40px -8px var(--brand-glow);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-surface: var(--surface);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 28%, transparent);
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+  }
+  input, textarea, select, button {
+    font: inherit;
+  }
+  /* Radix Select spiegelt seinen Wert in ein verstecktes natives <select>
+     (1×1 px, geclippt) für Formular-Reset und Autofill. Es ist ohnehin nicht
+     erreichbar — hiermit ist ausgeschlossen, dass je eine System-Auswahlliste
+     aufgeht. Der abgesendete Wert kommt aus unserem eigenen hidden input. */
+  select[aria-hidden="true"] {
+    pointer-events: none;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--muted-foreground) 30%, transparent);
+    border-radius: 4px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
+    background-clip: content-box;
+  }
+}
+
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+
+  .glass {
+    background: color-mix(in oklab, var(--card) 72%, transparent);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+  }
+
+
+  /* Markenfläche für Logo-Marken, Schritt-Icons & Co. */
+  .brand-surface {
+    background-color: var(--brand);
+    color: var(--brand-foreground);
+  }
+
+  /* Weicher Markenschimmer im Hintergrund — einfarbig, aus dem Token. */
+  .surface-glow {
+    background-image:
+      radial-gradient(ellipse 80% 55% at 50% -10%, var(--brand-soft), transparent 70%),
+      radial-gradient(ellipse 60% 45% at 90% 10%, var(--brand-soft), transparent 65%);
+  }
+
+  .noise::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--muted) 100%, transparent) 25%,
+      color-mix(in oklab, var(--muted-foreground) 12%, var(--muted)) 37%,
+      color-mix(in oklab, var(--muted) 100%, transparent) 63%
+    );
+    background-size: 400% 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .mask-fade-b {
+    mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+  }
+
+  .animate-in-up { animation: var(--animate-fade-up); }
+
+  /* Radix-Overlay-Animationen */
+  .animate-in { animation: overlay-enter 0.18s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .animate-out { animation: overlay-exit 0.14s ease-in both; }
+  .animate-accordion-down { animation: accordion-down 0.25s ease-out; }
+  .animate-accordion-up { animation: accordion-up 0.2s ease-out; }
+  .dialog-pop { animation: dialog-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .sheet-in-right { animation: sheet-in-right 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .sheet-in-left { animation: sheet-in-left 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .sheet-in-bottom { animation: sheet-in-bottom 0.28s cubic-bezier(0.16, 1, 0.3, 1) both; }
+}
+
+@keyframes dialog-pop {
+  from { opacity: 0; transform: translate(-50%, -46%) scale(0.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes sheet-in-right {
+  from { transform: translateX(100%); }
+  to { transform: none; }
+}
+@keyframes sheet-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: none; }
+}
+@keyframes sheet-in-bottom {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+@keyframes overlay-enter {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes overlay-exit {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Karte (Leaflet) ────────────────────────────────────────────────────────
+   Leaflet bringt eigene Farben und runde Elemente mit. Hier auf die Tokens
+   der Seite gezogen: keine Schlagschatten, keine vollrunden Ecken, keine
+   fest verdrahteten Farben. */
+.leaflet-container {
+  background: var(--muted);
+  font: inherit;
+  outline: none;
+  /* Leaflet vergibt seinen Ebenen z-index 400 bis 1000. Ohne eigenen
+     Stapelkontext wirken die im umgebenden Dokument — die Vorschlagsliste
+     der Ortssuche verschwand dadurch hinter der Karte. */
+  isolation: isolate;
+}
+.leaflet-container a { color: var(--primary); }
+
+.leaflet-container .leaflet-bar,
+.leaflet-container .leaflet-popup-content-wrapper,
+.leaflet-container .leaflet-popup-tip {
+  box-shadow: none;
+  border-radius: var(--radius-lg, 0.5rem);
+  background: var(--card);
+  color: var(--card-foreground);
+}
+.leaflet-container .leaflet-bar a,
+.leaflet-container .leaflet-bar a:hover {
+  background: var(--card);
+  color: var(--card-foreground);
+  border-bottom-color: var(--border);
+}
+.leaflet-container .leaflet-bar a:hover { background: var(--muted); }
+.leaflet-container .leaflet-bar { border: 1px solid var(--border); }
+
+.leaflet-container .leaflet-control-attribution,
+.leaflet-container .leaflet-control-attribution a {
+  color: var(--muted-foreground);
+}
+.leaflet-container .leaflet-control-attribution {
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-top-left-radius: var(--radius-sm, 0.25rem);
+}
+
+/* Im dunklen Modus die Kacheln abdunkeln — OSM liefert nur ein helles Design. */
+.dark .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.7);
+}
+
+/* Eigener Marker statt der Leaflet-Bilddateien. */
+.gnd-pin-wrapper { background: none; border: none; }
+.gnd-pin {
+  display: block;
+  width: 28px;
+  height: 34px;
+  background: var(--brand);
+  border: 2px solid var(--card);
+  border-radius: 0.5rem 0.5rem 0.5rem 0.125rem;
+  rotate: 45deg;
+  transform-origin: center;
+}
+.gnd-pin__punkt {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 0.125rem;
+  background: var(--card);
+}
+.gnd-pin--aktiv {
+  background: var(--foreground);
+  z-index: 500;
+}
+
+/*
+ * Installierte App.
+ *
+ * Ohne Browserleiste liegt die Oberfläche direkt unter Statusleiste und
+ * Home-Indikator — beides bekommt seinen Abstand. Das Überziehen am Rand
+ * schalten wir ab: In einer App wirkt der mitfedernde Hintergrund wie ein
+ * Fehler, im Browser gehört er dazu.
+ */
+@media (display-mode: standalone) {
+  header {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Seitliche Aussparungen im Querformat gelten für die ganze Fläche. */
+  body {
+    overscroll-behavior-y: none;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}

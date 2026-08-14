@@ -1,0 +1,227 @@
+/**
+ * Sprachkatalog — alle Sprachen mit ISO-639-1-Kürzel.
+ *
+ * Erzeugt aus den Sprachnamen des Betriebssystems (ICU) und von Hand um die
+ * Flagge ergänzt: `land` verweist auf eine Grafik in `public/flags`. Eine
+ * Sprache ist kein Land, deshalb ist die Zuordnung eine Näherung — gezeigt
+ * wird das Land, in dem die Sprache Amtssprache oder am weitesten verbreitet
+ * ist. Konstruierte Sprachen (Esperanto, Ido, Interlingua, Volapük) haben
+ * keine; dort steht das Kürzel als Text.
+ *
+ * `eigen` ist der Name in der Sprache selbst, `en` der englische — beide
+ * dienen der Suche, damit „Spanish“, „Español“ und „Spanisch“ zum selben
+ * Treffer führen.
+ */
+
+export type Sprache = {
+  /** ISO 639-1, zwei Buchstaben. */
+  code: string;
+  /** Deutscher Name — der angezeigte. */
+  name: string;
+  /** Name in der Sprache selbst. */
+  eigen: string;
+  /** Englischer Name. */
+  en: string;
+  /** Länderkürzel für die Flagge, `null` wenn es keine gibt. */
+  land: string | null;
+};
+
+export const SPRACHEN: readonly Sprache[] = [
+  { code: "ab", name: "Abchasisch", eigen: "Abkhazian", en: "Abkhazian", land: "ge" },
+  { code: "aa", name: "Afar", eigen: "Afar", en: "Afar", land: "dj" },
+  { code: "af", name: "Afrikaans", eigen: "Afrikaans", en: "Afrikaans", land: "za" },
+  { code: "ak", name: "Akan", eigen: "Akan", en: "Akan", land: "gh" },
+  { code: "sq", name: "Albanisch", eigen: "Shqip", en: "Albanian", land: "al" },
+  { code: "am", name: "Amharisch", eigen: "አማርኛ", en: "Amharic", land: "et" },
+  { code: "ar", name: "Arabisch", eigen: "العربية", en: "Arabic", land: "sa" },
+  { code: "an", name: "Aragonesisch", eigen: "Aragonese", en: "Aragonese", land: "es" },
+  { code: "hy", name: "Armenisch", eigen: "Հայերեն", en: "Armenian", land: "am" },
+  { code: "az", name: "Aserbaidschanisch", eigen: "Azərbaycan", en: "Azerbaijani", land: "az" },
+  { code: "as", name: "Assamesisch", eigen: "অসমীয়া", en: "Assamese", land: "in" },
+  { code: "ae", name: "Avestisch", eigen: "Avestan", en: "Avestan", land: "ir" },
+  { code: "av", name: "Awarisch", eigen: "Avaric", en: "Avaric", land: "ru" },
+  { code: "ay", name: "Aymara", eigen: "Aymara", en: "Aymara", land: "bo" },
+  { code: "bm", name: "Bambara", eigen: "Bamanakan", en: "Bambara", land: "ml" },
+  { code: "ba", name: "Baschkirisch", eigen: "Башҡорт", en: "Bashkir", land: "ru" },
+  { code: "eu", name: "Baskisch", eigen: "Euskara", en: "Basque", land: "es-pv" },
+  { code: "be", name: "Belarussisch", eigen: "Беларуская", en: "Belarusian", land: "by" },
+  { code: "bn", name: "Bengalisch", eigen: "বাংলা", en: "Bangla", land: "bd" },
+  { code: "my", name: "Birmanisch", eigen: "မြန်မာ", en: "Burmese", land: "mm" },
+  { code: "bi", name: "Bislama", eigen: "Bislama", en: "Bislama", land: "vu" },
+  { code: "bs", name: "Bosnisch", eigen: "Bosanski", en: "Bosnian", land: "ba" },
+  { code: "br", name: "Bretonisch", eigen: "Brezhoneg", en: "Breton", land: "fr" },
+  { code: "bg", name: "Bulgarisch", eigen: "Български", en: "Bulgarian", land: "bg" },
+  { code: "ch", name: "Chamorro", eigen: "Chamorro", en: "Chamorro", land: "gu" },
+  { code: "zh", name: "Chinesisch", eigen: "中文", en: "Chinese", land: "cn" },
+  { code: "cr", name: "Cree", eigen: "Cree", en: "Cree", land: "ca" },
+  { code: "da", name: "Dänisch", eigen: "Dansk", en: "Danish", land: "dk" },
+  { code: "de", name: "Deutsch", eigen: "Deutsch", en: "German", land: "de" },
+  { code: "dv", name: "Dhivehi", eigen: "Divehi", en: "Divehi", land: "mv" },
+  { code: "dz", name: "Dzongkha", eigen: "རྫོང་ཁ", en: "Dzongkha", land: "bt" },
+  { code: "en", name: "Englisch", eigen: "English", en: "English", land: "gb" },
+  { code: "eo", name: "Esperanto", eigen: "Esperanto", en: "Esperanto", land: null },
+  { code: "et", name: "Estnisch", eigen: "Eesti", en: "Estonian", land: "ee" },
+  { code: "ee", name: "Ewe", eigen: "Eʋegbe", en: "Ewe", land: "gh" },
+  { code: "fo", name: "Färöisch", eigen: "Føroyskt", en: "Faroese", land: "fo" },
+  { code: "fj", name: "Fidschi", eigen: "Fijian", en: "Fijian", land: "fj" },
+  { code: "tl", name: "Filipino", eigen: "Filipino", en: "Filipino", land: "ph" },
+  { code: "fi", name: "Finnisch", eigen: "Suomi", en: "Finnish", land: "fi" },
+  { code: "fr", name: "Französisch", eigen: "Français", en: "French", land: "fr" },
+  { code: "ff", name: "Ful", eigen: "Pulaar", en: "Fula", land: "sn" },
+  { code: "gl", name: "Galicisch", eigen: "Galego", en: "Galician", land: "es-ga" },
+  { code: "gd", name: "Gälisch (Schottland)", eigen: "Gàidhlig", en: "Scottish Gaelic", land: "gb-sct" },
+  { code: "lg", name: "Ganda", eigen: "Luganda", en: "Ganda", land: "ug" },
+  { code: "ka", name: "Georgisch", eigen: "Ქართული", en: "Georgian", land: "ge" },
+  { code: "el", name: "Griechisch", eigen: "Ελληνικά", en: "Greek", land: "gr" },
+  { code: "kl", name: "Grönländisch", eigen: "Kalaallisut", en: "Kalaallisut", land: "gl" },
+  { code: "gn", name: "Guaraní", eigen: "Guarani", en: "Guarani", land: "py" },
+  { code: "gu", name: "Gujarati", eigen: "ગુજરાતી", en: "Gujarati", land: "in" },
+  { code: "ht", name: "Haiti-Kreolisch", eigen: "Haitian Creole", en: "Haitian Creole", land: "ht" },
+  { code: "ha", name: "Haussa", eigen: "Hausa", en: "Hausa", land: "ng" },
+  { code: "he", name: "Hebräisch", eigen: "עברית", en: "Hebrew", land: "il" },
+  { code: "hz", name: "Herero", eigen: "Herero", en: "Herero", land: "na" },
+  { code: "hi", name: "Hindi", eigen: "हिन्दी", en: "Hindi", land: "in" },
+  { code: "ho", name: "Hiri-Motu", eigen: "Hiri Motu", en: "Hiri Motu", land: "pg" },
+  { code: "io", name: "Ido", eigen: "Ido", en: "Ido", land: null },
+  { code: "ig", name: "Igbo", eigen: "Igbo", en: "Igbo", land: "ng" },
+  { code: "id", name: "Indonesisch", eigen: "Indonesia", en: "Indonesian", land: "id" },
+  { code: "ia", name: "Interlingua", eigen: "Interlingua", en: "Interlingua", land: null },
+  { code: "ie", name: "Interlingue", eigen: "Interlingue", en: "Interlingue", land: null },
+  { code: "iu", name: "Inuktitut", eigen: "Inuktitut", en: "Inuktitut", land: "ca" },
+  { code: "ik", name: "Inupiak", eigen: "Inupiaq", en: "Inupiaq", land: "us" },
+  { code: "ga", name: "Irisch", eigen: "Gaeilge", en: "Irish", land: "ie" },
+  { code: "is", name: "Isländisch", eigen: "Íslenska", en: "Icelandic", land: "is" },
+  { code: "it", name: "Italienisch", eigen: "Italiano", en: "Italian", land: "it" },
+  { code: "ja", name: "Japanisch", eigen: "日本語", en: "Japanese", land: "jp" },
+  { code: "jv", name: "Javanisch", eigen: "Jawa", en: "Javanese", land: "id" },
+  { code: "yi", name: "Jiddisch", eigen: "ייִדיש", en: "Yiddish", land: "il" },
+  { code: "kn", name: "Kannada", eigen: "ಕನ್ನಡ", en: "Kannada", land: "in" },
+  { code: "kr", name: "Kanuri", eigen: "Kanuri", en: "Kanuri", land: "ng" },
+  { code: "kk", name: "Kasachisch", eigen: "Қазақ тілі", en: "Kazakh", land: "kz" },
+  { code: "ks", name: "Kaschmiri", eigen: "کٲشُر", en: "Kashmiri", land: "in" },
+  { code: "ca", name: "Katalanisch", eigen: "Català", en: "Catalan", land: "ad" },
+  { code: "km", name: "Khmer", eigen: "ខ្មែរ", en: "Khmer", land: "kh" },
+  { code: "ki", name: "Kikuyu", eigen: "Gikuyu", en: "Kikuyu", land: "ke" },
+  { code: "rw", name: "Kinyarwanda", eigen: "Ikinyarwanda", en: "Kinyarwanda", land: "rw" },
+  { code: "cu", name: "Kirchenslawisch", eigen: "Church Slavic", en: "Church Slavic", land: "ru" },
+  { code: "ky", name: "Kirgisisch", eigen: "Кыргызча", en: "Kyrgyz", land: "kg" },
+  { code: "kv", name: "Komi", eigen: "Komi", en: "Komi", land: "ru" },
+  { code: "kg", name: "Kongolesisch", eigen: "Kongo", en: "Kongo", land: "cd" },
+  { code: "ko", name: "Koreanisch", eigen: "한국어", en: "Korean", land: "kr" },
+  { code: "kw", name: "Kornisch", eigen: "Kernewek", en: "Cornish", land: "gb" },
+  { code: "co", name: "Korsisch", eigen: "Corsican", en: "Corsican", land: "fr" },
+  { code: "hr", name: "Kroatisch", eigen: "Hrvatski", en: "Croatian", land: "hr" },
+  { code: "ku", name: "Kurdisch", eigen: "Kurdî (kurmancî)", en: "Kurdish", land: "iq" },
+  { code: "kj", name: "Kwanyama", eigen: "Kuanyama", en: "Kuanyama", land: "ao" },
+  { code: "lo", name: "Laotisch", eigen: "ລາວ", en: "Lao", land: "la" },
+  { code: "la", name: "Latein", eigen: "Latin", en: "Latin", land: "va" },
+  { code: "lv", name: "Lettisch", eigen: "Latviešu", en: "Latvian", land: "lv" },
+  { code: "li", name: "Limburgisch", eigen: "Limburgish", en: "Limburgish", land: "nl" },
+  { code: "ln", name: "Lingala", eigen: "Lingála", en: "Lingala", land: "cd" },
+  { code: "lt", name: "Litauisch", eigen: "Lietuvių", en: "Lithuanian", land: "lt" },
+  { code: "lu", name: "Luba-Katanga", eigen: "Tshiluba", en: "Luba-Katanga", land: "cd" },
+  { code: "lb", name: "Luxemburgisch", eigen: "Lëtzebuergesch", en: "Luxembourgish", land: "lu" },
+  { code: "mg", name: "Malagasy", eigen: "Malagasy", en: "Malagasy", land: "mg" },
+  { code: "ms", name: "Malaiisch", eigen: "Melayu", en: "Malay", land: "my" },
+  { code: "ml", name: "Malayalam", eigen: "മലയാളം", en: "Malayalam", land: "in" },
+  { code: "mt", name: "Maltesisch", eigen: "Malti", en: "Maltese", land: "mt" },
+  { code: "gv", name: "Manx", eigen: "Gaelg", en: "Manx", land: "im" },
+  { code: "mi", name: "Māori", eigen: "Māori", en: "Māori", land: "nz" },
+  { code: "mr", name: "Marathi", eigen: "मराठी", en: "Marathi", land: "in" },
+  { code: "mh", name: "Marschallesisch", eigen: "Marshallese", en: "Marshallese", land: "mh" },
+  { code: "mk", name: "Mazedonisch", eigen: "Македонски", en: "Macedonian", land: "mk" },
+  { code: "mn", name: "Mongolisch", eigen: "Монгол", en: "Mongolian", land: "mn" },
+  { code: "na", name: "Nauruisch", eigen: "Nauru", en: "Nauru", land: "nr" },
+  { code: "nv", name: "Navajo", eigen: "Navajo", en: "Navajo", land: "us" },
+  { code: "ng", name: "Ndonga", eigen: "Ndonga", en: "Ndonga", land: "na" },
+  { code: "ne", name: "Nepalesisch", eigen: "नेपाली", en: "Nepali", land: "np" },
+  { code: "nl", name: "Niederländisch", eigen: "Nederlands", en: "Dutch", land: "nl" },
+  { code: "nd", name: "Nord-Ndebele", eigen: "IsiNdebele", en: "North Ndebele", land: "zw" },
+  { code: "se", name: "Nordsamisch", eigen: "Davvisámegiella", en: "Northern Sami", land: "no" },
+  { code: "no", name: "Norwegisch", eigen: "Norsk", en: "Norwegian", land: "no" },
+  { code: "nb", name: "Norwegisch (Bokmål)", eigen: "Norsk bokmål", en: "Norwegian Bokmål", land: "no" },
+  { code: "nn", name: "Norwegisch (Nynorsk)", eigen: "Norsk nynorsk", en: "Norwegian Nynorsk", land: "no" },
+  { code: "ny", name: "Nyanja", eigen: "Nyanja", en: "Nyanja", land: "mw" },
+  { code: "oj", name: "Ojibwa", eigen: "Ojibwa", en: "Ojibwa", land: "ca" },
+  { code: "oc", name: "Okzitanisch", eigen: "Occitan", en: "Occitan", land: "fr" },
+  { code: "or", name: "Oriya", eigen: "ଓଡ଼ିଆ", en: "Odia", land: "in" },
+  { code: "om", name: "Oromo", eigen: "Oromoo", en: "Oromo", land: "et" },
+  { code: "os", name: "Ossetisch", eigen: "Ирон", en: "Ossetic", land: "ge" },
+  { code: "pi", name: "Pali", eigen: "Pali", en: "Pali", land: "in" },
+  { code: "ps", name: "Paschtu", eigen: "پښتو", en: "Pashto", land: "af" },
+  { code: "fa", name: "Persisch", eigen: "فارسی", en: "Persian", land: "ir" },
+  { code: "pl", name: "Polnisch", eigen: "Polski", en: "Polish", land: "pl" },
+  { code: "pt", name: "Portugiesisch", eigen: "Português", en: "Portuguese", land: "pt" },
+  { code: "pa", name: "Punjabi", eigen: "ਪੰਜਾਬੀ", en: "Punjabi", land: "in" },
+  { code: "qu", name: "Quechua", eigen: "Runasimi", en: "Quechua", land: "pe" },
+  { code: "rm", name: "Rätoromanisch", eigen: "Rumantsch", en: "Romansh", land: "ch" },
+  { code: "ro", name: "Rumänisch", eigen: "Română", en: "Romanian", land: "ro" },
+  { code: "rn", name: "Rundi", eigen: "Ikirundi", en: "Rundi", land: "bi" },
+  { code: "ru", name: "Russisch", eigen: "Русский", en: "Russian", land: "ru" },
+  { code: "sm", name: "Samoanisch", eigen: "Samoan", en: "Samoan", land: "ws" },
+  { code: "sg", name: "Sango", eigen: "Sängö", en: "Sango", land: "cf" },
+  { code: "sa", name: "Sanskrit", eigen: "संस्कृत भाषा", en: "Sanskrit", land: "in" },
+  { code: "sc", name: "Sardisch", eigen: "Sardu", en: "Sardinian", land: "it" },
+  { code: "sv", name: "Schwedisch", eigen: "Svenska", en: "Swedish", land: "se" },
+  { code: "sr", name: "Serbisch", eigen: "Српски", en: "Serbian", land: "rs" },
+  { code: "sn", name: "Shona", eigen: "ChiShona", en: "Shona", land: "zw" },
+  { code: "sd", name: "Sindhi", eigen: "سنڌي", en: "Sindhi", land: "pk" },
+  { code: "si", name: "Singhalesisch", eigen: "සිංහල", en: "Sinhala", land: "lk" },
+  { code: "sk", name: "Slowakisch", eigen: "Slovenčina", en: "Slovak", land: "sk" },
+  { code: "sl", name: "Slowenisch", eigen: "Slovenščina", en: "Slovenian", land: "si" },
+  { code: "so", name: "Somali", eigen: "Soomaali", en: "Somali", land: "so" },
+  { code: "es", name: "Spanisch", eigen: "Español", en: "Spanish", land: "es" },
+  { code: "sw", name: "Suaheli", eigen: "Kiswahili", en: "Swahili", land: "tz" },
+  { code: "nr", name: "Süd-Ndebele", eigen: "South Ndebele", en: "South Ndebele", land: "za" },
+  { code: "st", name: "Süd-Sotho", eigen: "Sesotho", en: "Southern Sotho", land: "ls" },
+  { code: "su", name: "Sundanesisch", eigen: "Basa Sunda", en: "Sundanese", land: "id" },
+  { code: "ss", name: "Swazi", eigen: "Swati", en: "Swati", land: "sz" },
+  { code: "tg", name: "Tadschikisch", eigen: "Тоҷикӣ", en: "Tajik", land: "tj" },
+  { code: "ty", name: "Tahitisch", eigen: "Tahitian", en: "Tahitian", land: "pf" },
+  { code: "ta", name: "Tamil", eigen: "தமிழ்", en: "Tamil", land: "in" },
+  { code: "tt", name: "Tatarisch", eigen: "Татар", en: "Tatar", land: "ru" },
+  { code: "te", name: "Telugu", eigen: "తెలుగు", en: "Telugu", land: "in" },
+  { code: "th", name: "Thailändisch", eigen: "ไทย", en: "Thai", land: "th" },
+  { code: "bo", name: "Tibetisch", eigen: "བོད་སྐད་", en: "Tibetan", land: "cn" },
+  { code: "ti", name: "Tigrinya", eigen: "ትግርኛ", en: "Tigrinya", land: "er" },
+  { code: "to", name: "Tongaisch", eigen: "Lea fakatonga", en: "Tongan", land: "to" },
+  { code: "cs", name: "Tschechisch", eigen: "Čeština", en: "Czech", land: "cz" },
+  { code: "ce", name: "Tschetschenisch", eigen: "Нохчийн", en: "Chechen", land: "ru" },
+  { code: "cv", name: "Tschuwaschisch", eigen: "Чӑваш чӗлхи", en: "Chuvash", land: "ru" },
+  { code: "ts", name: "Tsonga", eigen: "Tsonga", en: "Tsonga", land: "za" },
+  { code: "tn", name: "Tswana", eigen: "Setswana", en: "Tswana", land: "bw" },
+  { code: "tr", name: "Türkisch", eigen: "Türkçe", en: "Turkish", land: "tr" },
+  { code: "tk", name: "Turkmenisch", eigen: "Türkmen dili", en: "Turkmen", land: "tm" },
+  { code: "tw", name: "Twi", eigen: "Akan", en: "Akan", land: "gh" },
+  { code: "ug", name: "Uigurisch", eigen: "ئۇيغۇرچە", en: "Uyghur", land: "cn" },
+  { code: "uk", name: "Ukrainisch", eigen: "Українська", en: "Ukrainian", land: "ua" },
+  { code: "hu", name: "Ungarisch", eigen: "Magyar", en: "Hungarian", land: "hu" },
+  { code: "ur", name: "Urdu", eigen: "اردو", en: "Urdu", land: "pk" },
+  { code: "uz", name: "Usbekisch", eigen: "O‘zbek", en: "Uzbek", land: "uz" },
+  { code: "ve", name: "Venda", eigen: "Venda", en: "Venda", land: "za" },
+  { code: "vi", name: "Vietnamesisch", eigen: "Tiếng Việt", en: "Vietnamese", land: "vn" },
+  { code: "vo", name: "Volapük", eigen: "Volapük", en: "Volapük", land: null },
+  { code: "cy", name: "Walisisch", eigen: "Cymraeg", en: "Welsh", land: "gb-wls" },
+  { code: "wa", name: "Wallonisch", eigen: "Walloon", en: "Walloon", land: "be" },
+  { code: "fy", name: "Westfriesisch", eigen: "Frysk", en: "Western Frisian", land: "nl" },
+  { code: "wo", name: "Wolof", eigen: "Wolof", en: "Wolof", land: "sn" },
+  { code: "xh", name: "Xhosa", eigen: "IsiXhosa", en: "Xhosa", land: "za" },
+  { code: "ii", name: "Yi", eigen: "ꆈꌠꉙ", en: "Sichuan Yi", land: "cn" },
+  { code: "yo", name: "Yoruba", eigen: "Èdè Yorùbá", en: "Yoruba", land: "ng" },
+  { code: "za", name: "Zhuang", eigen: "Vahcuengh", en: "Zhuang", land: "cn" },
+  { code: "zu", name: "Zulu", eigen: "IsiZulu", en: "Zulu", land: "za" },
+];
+
+/** Nachschlagewerk nach Kürzel — für Anzeige und Prüfung. */
+export const SPRACHE_NACH_CODE = new Map(SPRACHEN.map((s) => [s.code, s]));
+
+/** Gültiges Sprachkürzel? */
+export function istSprachcode(code: string): boolean {
+  return SPRACHE_NACH_CODE.has(code);
+}
+
+/**
+ * Sprachen, die im Verzeichnis besonders häufig gebraucht werden.
+ * Sie stehen in der Auswahl zuoberst — der Rest folgt alphabetisch.
+ */
+export const HAEUFIGE_SPRACHEN = ["de", "en", "fr", "it", "es", "pt", "ro", "hu", "pl", "ru", "tr"] as const;

@@ -1,0 +1,1303 @@
+// ─────────────────────────────────────────────────────────────────────────────
+//  thegnd.net — Prisma schema
+//  Postgres (Railway) · Prisma 6
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  MEMBER // Kunde / Besucher mit Account
+  ESCORT // Anbieter:in
+  AGENCY // Agentur / Studio / Club
+  MODERATOR
+  ADMIN
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  BANNED
+  DELETED
+}
+
+enum ProfileStatus {
+  DRAFT
+  PENDING_REVIEW
+  ACTIVE
+  PAUSED
+  REJECTED
+  ARCHIVED
+}
+
+enum ProfileKind {
+  INDEPENDENT
+  AGENCY_MODEL
+  AGENCY
+  CLUB
+  STUDIO
+  MASSAGE
+  TRANS
+  COUPLE
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  TRANS_FEMALE
+  TRANS_MALE
+  NON_BINARY
+  COUPLE
+}
+
+enum Orientation {
+  HETERO
+  HOMO
+  BI
+  PAN
+  ASK
+}
+
+enum BodyType {
+  SLIM
+  ATHLETIC
+  AVERAGE
+  CURVY
+  BBW
+  MUSCULAR
+}
+
+enum HairColor {
+  BLONDE
+  BROWN
+  BLACK
+  RED
+  GREY
+  COLORED
+  BALD
+}
+
+enum HairLength {
+  SHORT
+  MEDIUM
+  LONG
+}
+
+enum EyeColor {
+  BLUE
+  GREEN
+  BROWN
+  GREY
+  HAZEL
+  BLACK
+}
+
+enum Ethnicity {
+  EUROPEAN
+  LATIN
+  ASIAN
+  AFRICAN
+  ARABIC
+  MIXED
+  OTHER
+}
+
+enum Smoker {
+  NO
+  OCCASIONALLY
+  YES
+}
+
+enum PubicHair {
+  SHAVED
+  TRIMMED
+  NATURAL
+  PARTIAL
+}
+
+enum BreastType {
+  NATURAL
+  SILICONE
+}
+
+enum MeetingPlace {
+  INCALL // bei mir
+  OUTCALL // Hausbesuch / Hotel
+  BOTH
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+}
+
+enum MediaVisibility {
+  PUBLIC
+  MEMBERS
+  PRIVATE // nur nach Freigabe / kostenpflichtig
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum VerificationLevel {
+  NONE
+  PHOTO // Selfie-Check
+  ID // Ausweis geprüft
+  PREMIUM // Ausweis + Video-Call
+}
+
+enum VerificationStatus {
+  NOT_STARTED
+  SUBMITTED
+  IN_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum BookingStatus {
+  REQUESTED
+  ACCEPTED
+  DECLINED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum ReviewStatus {
+  PENDING
+  PUBLISHED
+  REJECTED
+  HIDDEN
+}
+
+enum BoostType {
+  BUMP // Nach oben schieben
+  TOP_LISTING // Top-Platzierung Stadt
+  SPOTLIGHT // Startseite
+  BANNER // Werbebanner
+  HIGHLIGHT // farbliche Hervorhebung
+  STORY_PIN
+}
+
+enum TxType {
+  PURCHASE
+  SPEND
+  REFUND
+  BONUS
+  PAYOUT
+  GIFT_IN
+  GIFT_OUT
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum NotificationType {
+  MESSAGE
+  BOOKING
+  REVIEW
+  FAVORITE
+  PROFILE_VIEW
+  VERIFICATION
+  SYSTEM
+  BOOST
+  GIFT
+  COMMENT
+  FOLLOW
+}
+
+enum ReportReason {
+  FAKE
+  SPAM
+  ILLEGAL
+  UNDERAGE
+  HARASSMENT
+  COPYRIGHT
+  TRAFFICKING
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum AgencyKind {
+  AGENCY // Escort-Agentur
+  CLUB // Nachtclub / Cabaret
+  STUDIO // Studio / Laufhaus
+  MASSAGE // Massagesalon
+  SAUNA // Sauna- / FKK-Club
+  BAR // Bar mit Begleitung
+}
+
+/**
+ * Wer die Zusammenarbeit angestossen hat.
+ */
+enum AgencyInviteOrigin {
+  AGENCY // Haus lädt ein
+  PROFILE // Anbieterin fragt an
+}
+
+enum AgencyInviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  REVOKED
+}
+
+enum PostVisibility {
+  PUBLIC
+  FOLLOWERS
+  PAID
+}
+
+// ── Auth / User ──────────────────────────────────────────────────────────────
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  role          Role       @default(MEMBER)
+  status        UserStatus @default(PENDING)
+
+  displayName   String?
+  avatarUrl     String?
+  phone         String?
+  phoneVerified Boolean @default(false)
+  locale        String  @default("de")
+  timezone      String  @default("Europe/Zurich")
+
+  // Wallet
+  credits       Int @default(0)
+  lifetimeSpend Int @default(0)
+
+  // 2FA
+  totpSecret  String?
+  totpEnabled Boolean @default(false)
+
+  ageConfirmedAt  DateTime?
+  termsAcceptedAt DateTime?
+  /**
+   * Willkommensschritt abgeschlossen.
+   * Nur für Mitgliedskonten gesetzt — bei Anbieterinnen und Häusern übernimmt
+   * das Vorhandensein eines Inserats bzw. Hauses dieselbe Rolle.
+   */
+  onboardedAt     DateTime?
+  marketingOptIn  Boolean   @default(false)
+  newsletterOptIn Boolean   @default(false)
+
+  lastSeenAt   DateTime?
+  lastIp       String?
+  referralCode String?   @unique
+
+  /**
+   * Von einer Agentur angelegtes und verwaltetes Konto.
+   * Das Haus legt für sein Model ein Inserat an; ein eigenes Login hat das
+   * Konto zunächst nicht (`passwordHash` bleibt leer). Trägt die Agentur eine
+   * E-Mail-Adresse ein, kann die Person das Konto später über „Passwort
+   * vergessen“ selbst übernehmen.
+   */
+  managedByAgencyId String?
+  managedByAgency   Agency? @relation("VerwalteteKonten", fields: [managedByAgencyId], references: [id], onDelete: SetNull)
+
+  referredById String?
+  referredBy   User?   @relation("Referrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals    User[]  @relation("Referrals")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  profile           Profile?
+  agencyMemberships AgencyMember[]
+  sessions          Session[]
+  tokens            Token[]
+  favorites         Favorite[]
+  reviewsWritten    Review[]                  @relation("ReviewAuthor")
+  bookings          Booking[]                 @relation("BookingClient")
+  messages          Message[]
+  conversations     ConversationParticipant[]
+  notifications     Notification[]
+  orders            Order[]
+  transactions      Transaction[]
+  reportsFiled      Report[]                  @relation("Reporter")
+  blocksMade        Block[]                   @relation("Blocker")
+  blocksAgainst     Block[]                   @relation("Blocked")
+  postLikes         PostLike[]
+  comments          Comment[]
+  savedSearches     SavedSearch[]
+  profileViews      ProfileView[]
+  giftsSent         Gift[]                    @relation("GiftSender")
+  giftsReceived     Gift[]                    @relation("GiftReceiver")
+  follows           Follow[]                  @relation("Follower")
+  auditLogs         AuditLog[]
+  storyViews        StoryView[]
+
+  @@index([role, status])
+  @@index([lastSeenAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ip        String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Token {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  type      String // EMAIL_VERIFY | PASSWORD_RESET | EMAIL_CHANGE | LOGIN_LINK
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payload   Json?
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, type])
+}
+
+// ── Geo ──────────────────────────────────────────────────────────────────────
+
+model Country {
+  id     String  @id @default(cuid())
+  code   String  @unique // ISO-3166 alpha2
+  name   String
+  nameDe String
+  slug   String  @unique
+  flag   String?
+  cities City[]
+
+  @@index([slug])
+}
+
+model City {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String
+  zip       String?
+  region    String?
+  lat       Float?
+  lng       Float?
+  countryId String
+  country   Country   @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  isPopular Boolean   @default(false)
+  heroImage String?
+  seoText   String?   @db.Text
+  profiles  Profile[]
+  tours     Tour[]
+  agencies  Agency[]
+
+  @@unique([countryId, slug])
+  @@index([slug])
+  @@index([isPopular])
+}
+
+// ── Profile ──────────────────────────────────────────────────────────────────
+
+model Profile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  slug        String        @unique
+  displayName String
+  headline    String?
+  about       String?       @db.Text
+  aboutEn     String?       @db.Text
+  status      ProfileStatus @default(DRAFT)
+  kind        ProfileKind   @default(INDEPENDENT)
+
+  // Person
+  gender      Gender
+  orientation Orientation?
+  birthDate   DateTime?
+  displayAge  Int?
+  nationality String?
+  ethnicity   Ethnicity?
+  heightCm    Int?
+  weightKg    Int?
+  bodyType    BodyType?
+  cupSize     String?
+  breastType  BreastType?
+  dressSize   String?
+  shoeSize    String?
+  hairColor   HairColor?
+  hairLength  HairLength?
+  eyeColor    EyeColor?
+  pubicHair   PubicHair?
+  tattoos     Boolean?
+  piercings   Boolean?
+  smoker      Smoker?
+  hasCar      Boolean      @default(false)
+
+  // Kontakt / Sichtbarkeit
+  phone        String?
+  showPhone    Boolean @default(true)
+  whatsapp     String?
+  telegram     String?
+  signalNumber String?
+  website      String?
+  instagram    String?
+  onlyfans     String?
+  contactNote  String?
+
+  // Ort
+  cityId       String?
+  city         City?        @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  district     String?
+  zip          String?
+  street       String?
+  showAddress  Boolean      @default(false)
+  lat          Float?
+  lng          Float?
+  radiusKm     Int?         @default(50)
+  meetingPlace MeetingPlace @default(BOTH)
+
+  // Preise
+  currency      String  @default("CHF")
+  priceHour     Int?
+  priceHalfHour Int?
+  priceTwoHours Int?
+  priceNight    Int?
+  priceNote     String? @db.Text
+
+  // Flags & Stats
+  isVerified        Boolean           @default(false)
+  verificationLevel VerificationLevel @default(NONE)
+  isFeatured        Boolean           @default(false)
+  isNew             Boolean           @default(true)
+  acceptsCouples    Boolean           @default(false)
+  travelsWorldwide  Boolean           @default(false)
+  independent       Boolean           @default(true)
+
+  viewCount     Int       @default(0)
+  favoriteCount Int       @default(0)
+  reviewCount   Int       @default(0)
+  ratingAvg     Float     @default(0)
+  rankScore     Float     @default(0)
+  bumpedAt      DateTime  @default(now())
+  publishedAt   DateTime?
+  lastActiveAt  DateTime?
+
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+
+  agencyId      String?
+  agency        Agency?        @relation(fields: [agencyId], references: [id], onDelete: SetNull)
+  agencyInvites AgencyInvite[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  media        Media[]
+  services     ProfileService[]
+  rates        Rate[]
+  languages    ProfileLanguage[]
+  workingHours WorkingHour[]
+  tours        Tour[]
+  favorites    Favorite[]
+  reviews      Review[]
+  bookings     Booking[]
+  boosts       Boost[]
+  posts        Post[]
+  stories      Story[]
+  views        ProfileView[]
+  verification Verification?
+  followers    Follow[]
+  gifts        Gift[]
+
+  @@index([status, cityId])
+  // Umkreissuche: Bounding-Box-Vorfilter vor der Distanzrechnung.
+  @@index([lat, lng])
+  @@index([status, rankScore])
+  @@index([status, bumpedAt])
+  @@index([gender, status])
+  @@index([slug])
+}
+
+model Media {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  type           MediaType        @default(IMAGE)
+  key            String // S3 object key
+  url            String
+  thumbUrl       String?
+  blurData       String?
+  width          Int?
+  height         Int?
+  durationS      Int?
+  sizeBytes      Int?
+  mimeType       String?
+  caption        String?
+  visibility     MediaVisibility  @default(PUBLIC)
+  unlockCost     Int              @default(0)
+  isCover        Boolean          @default(false)
+  isWatermarked  Boolean          @default(true)
+  position       Int              @default(0)
+  moderation     ModerationStatus @default(PENDING)
+  moderationNote String?
+
+  createdAt DateTime @default(now())
+
+  @@index([profileId, position])
+  @@index([moderation])
+}
+
+model ServiceCategory {
+  id       String  @id @default(cuid())
+  slug     String  @unique
+  name     String
+  nameEn   String
+  icon     String?
+  position Int     @default(0)
+
+  /**
+   * Für wen die Kategorie gilt: BOTH | PROFILE | AGENCY.
+   * „Haus & Ambiente“ (Sauna, Bar, Separées) ergibt nur bei einem Haus Sinn,
+   * persönliche Vorlieben nur bei einem Inserat. Ohne diese Trennung stünde
+   * in beiden Editoren eine Liste voller unpassender Punkte.
+   */
+  scope String @default("BOTH")
+
+  services Service[]
+}
+
+model Service {
+  id         String          @id @default(cuid())
+  slug       String          @unique
+  name       String
+  nameEn     String
+  isExtreme  Boolean         @default(false)
+  categoryId String
+  category   ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  position   Int             @default(0)
+
+  profiles ProfileService[]
+  agencies AgencyService[]
+
+  @@index([categoryId, position])
+}
+
+model ProfileService {
+  profileId String
+  serviceId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  extraCost Int?
+  onRequest Boolean @default(false)
+  note      String?
+
+  @@id([profileId, serviceId])
+  @@index([serviceId])
+}
+
+model Language {
+  id       String            @id @default(cuid())
+  code     String            @unique
+  name     String
+  nameEn   String
+  flag     String?
+  profiles ProfileLanguage[]
+  agencies AgencyLanguage[]
+}
+
+model ProfileLanguage {
+  profileId  String
+  languageId String
+  level      Int      @default(3) // 1..5
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  language   Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, languageId])
+}
+
+model Rate {
+  id        String       @id @default(cuid())
+  profileId String
+  profile   Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  minutes   Int
+  price     Int
+  place     MeetingPlace @default(BOTH)
+  label     String?
+  position  Int          @default(0)
+
+  @@index([profileId, minutes])
+}
+
+model WorkingHour {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  weekday   Int // 0 = So
+  from      String // "10:00"
+  to        String // "23:00"
+  closed    Boolean @default(false)
+
+  @@unique([profileId, weekday])
+}
+
+model Tour {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  cityId    String
+  city      City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  from      DateTime
+  to        DateTime
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([cityId, from, to])
+  @@index([profileId])
+}
+
+// ── Agency / Club ────────────────────────────────────────────────────────────
+
+model Agency {
+  id       String     @id @default(cuid())
+  slug     String     @unique
+  name     String
+  kind     AgencyKind @default(AGENCY)
+  about    String?    @db.Text
+  headline String?
+  logoUrl  String?
+  coverUrl String?
+  website  String?
+  phone    String?
+  whatsapp String?
+  email    String?
+
+  // Standort — `cityName` bleibt als Freitext bestehen, `cityId` ist die
+  // Grundlage für Stadtfilter und Umkreissuche.
+  street      String?
+  zip         String?
+  cityName    String?
+  district    String?
+  cityId      String?
+  city        City?   @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  countryCode String  @default("CH")
+  lat         Float?
+  lng         Float?
+
+  // Preise (in CHF, siehe `currency`)
+  priceFrom Int?
+  currency  String @default("CHF")
+
+  // Ausstattung
+  isOpen24h    Boolean @default(false)
+  hasParking   Boolean @default(false)
+  hasBar       Boolean @default(false)
+  acceptsCards Boolean @default(false)
+  barrierFree  Boolean @default(false)
+
+  isVerified  Boolean  @default(false)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members          AgencyMember[]
+  profiles         Profile[]
+  invites          AgencyInvite[]
+  verification     AgencyVerification?
+  verwalteteKonten User[]              @relation("VerwalteteKonten")
+  services         AgencyService[]
+  languages        AgencyLanguage[]
+  hours            AgencyHour[]
+  stories          Story[]
+
+  @@index([isPublished, cityId])
+  @@index([kind])
+  @@index([lat, lng])
+}
+
+model AgencyService {
+  agencyId  String
+  serviceId String
+  agency    Agency  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([agencyId, serviceId])
+  @@index([serviceId])
+}
+
+model AgencyLanguage {
+  agencyId   String
+  languageId String
+  agency     Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  language   Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([agencyId, languageId])
+  @@index([languageId])
+}
+
+/**
+ * Öffnungszeiten je Wochentag. 0 = Sonntag. Zeiten als "HH:MM".
+ */
+model AgencyHour {
+  id       String  @id @default(cuid())
+  agencyId String
+  agency   Agency  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  weekday  Int
+  opensAt  String?
+  closesAt String?
+  closed   Boolean @default(false)
+
+  @@unique([agencyId, weekday])
+}
+
+model AgencyMember {
+  id        String   @id @default(cuid())
+  agencyId  String
+  userId    String
+  role      String   @default("STAFF") // OWNER | MANAGER | STAFF
+  agency    Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([agencyId, userId])
+  @@index([userId])
+}
+
+/**
+ * Einladung eines Profils in ein Haus.
+ * Eine Agentur kann ein Profil nicht einseitig an sich binden — die
+ * Zuordnung entsteht erst, wenn die Anbieterin zustimmt. Andernfalls
+ * könnte jedes Haus fremde Inserate als eigenes Team ausgeben.
+ */
+model AgencyInvite {
+  id          String             @id @default(cuid())
+  agencyId    String
+  agency      Agency             @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  profileId   String
+  profile     Profile            @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  status      AgencyInviteStatus @default(PENDING)
+  /**
+   * Dieselbe Beziehung, nur von zwei Seiten anstossbar: Das Haus lädt ein,
+   * oder die Anbieterin fragt an. Zustimmen muss immer die jeweils andere
+   * Seite — deshalb genügt ein Modell statt zwei.
+   */
+  origin      AgencyInviteOrigin @default(AGENCY)
+  message     String?
+  invitedById String?
+  createdAt   DateTime           @default(now())
+  respondedAt DateTime?
+
+  @@unique([agencyId, profileId])
+  @@index([profileId, status])
+}
+
+// ── Interaktion ──────────────────────────────────────────────────────────────
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  profileId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, profileId])
+  @@index([profileId])
+}
+
+model Follow {
+  id        String   @id @default(cuid())
+  userId    String
+  profileId String
+  user      User     @relation("Follower", fields: [userId], references: [id], onDelete: Cascade)
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, profileId])
+}
+
+model ProfileView {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  ipHash    String?
+  referer   String?
+  createdAt DateTime @default(now())
+
+  @@index([profileId, createdAt])
+}
+
+model Review {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User    @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  rating        Int // 1..5 gesamt
+  ratingLooks   Int?
+  ratingService Int?
+  ratingCharm   Int?
+  ratingHygiene Int?
+  ratingValue   Int?
+
+  title             String?
+  body              String       @db.Text
+  metAt             DateTime?
+  isVerifiedMeeting Boolean      @default(false)
+  status            ReviewStatus @default(PENDING)
+  reply             String?      @db.Text
+  repliedAt         DateTime?
+  helpful           Int          @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([profileId, authorId])
+  @@index([profileId, status, createdAt])
+}
+
+model Booking {
+  id        String  @id @default(cuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  clientId  String
+  client    User    @relation("BookingClient", fields: [clientId], references: [id], onDelete: Cascade)
+
+  startAt    DateTime
+  minutes    Int
+  place      MeetingPlace
+  address    String?
+  note       String?       @db.Text
+  price      Int?
+  currency   String        @default("CHF")
+  status     BookingStatus @default(REQUESTED)
+  answerNote String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([profileId, startAt])
+  @@index([clientId, startAt])
+}
+
+// ── Messaging ────────────────────────────────────────────────────────────────
+
+model Conversation {
+  id            String   @id @default(cuid())
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([lastMessageAt])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  userId         String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt     DateTime?
+  archived       Boolean      @default(false)
+  muted          Boolean      @default(false)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  body           String       @db.Text
+  attachmentUrl  String?
+  attachmentType MediaType?
+  readAt         DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+}
+
+// ── Feed / Pinnwand / Stories ────────────────────────────────────────────────
+
+model Post {
+  id           String           @id @default(cuid())
+  profileId    String
+  profile      Profile          @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  body         String           @db.Text
+  mediaUrl     String?
+  mediaType    MediaType?
+  visibility   PostVisibility   @default(PUBLIC)
+  unlockCost   Int              @default(0)
+  likeCount    Int              @default(0)
+  commentCount Int              @default(0)
+  moderation   ModerationStatus @default(APPROVED)
+  createdAt    DateTime         @default(now())
+
+  likes    PostLike[]
+  comments Comment[]
+
+  @@index([createdAt])
+  @@index([profileId, createdAt])
+}
+
+model PostLike {
+  postId    String
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([postId, userId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([postId, createdAt])
+}
+
+/**
+ * Story — ein Beitrag, der nach 24 Stunden verschwindet.
+ *
+ * Urheber ist entweder ein Inserat oder ein Haus; genau eines von beiden ist
+ * gesetzt. Mehrere Stories desselben Urhebers werden nicht zusammengeführt,
+ * sondern beim Anzeigen zu einer Abfolge gebündelt — so bleibt jeder Teil
+ * einzeln löschbar und hat seine eigene Reichweite.
+ */
+model Story {
+  id        String   @id @default(cuid())
+  profileId String?
+  profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  agencyId  String?
+  agency    Agency?  @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  mediaUrl  String
+  mediaType MediaType @default(IMAGE)
+  caption   String?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  views StoryView[]
+
+  @@index([expiresAt])
+  @@index([profileId, createdAt])
+  @@index([agencyId, createdAt])
+}
+
+model StoryView {
+  storyId   String
+  userId    String
+  story     Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([storyId, userId])
+}
+
+// ── Monetarisierung ──────────────────────────────────────────────────────────
+
+model Boost {
+  id        String    @id @default(cuid())
+  profileId String
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  type      BoostType
+  cityId    String?
+  startsAt  DateTime  @default(now())
+  endsAt    DateTime
+  credits   Int       @default(0)
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  @@index([type, active, endsAt])
+  @@index([profileId])
+}
+
+model Package {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  credits     Int
+  bonus       Int     @default(0)
+  priceCents  Int
+  currency    String  @default("CHF")
+  popular     Boolean @default(false)
+  active      Boolean @default(true)
+  position    Int     @default(0)
+
+  orders Order[]
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  packageId   String?
+  package     Package?    @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  amountCents Int
+  currency    String      @default("CHF")
+  credits     Int
+  status      OrderStatus @default(PENDING)
+  provider    String? // stripe | paypal | crypto | banktransfer
+  providerRef String?
+  invoiceNo   String?     @unique
+  createdAt   DateTime    @default(now())
+  paidAt      DateTime?
+
+  @@index([userId, createdAt])
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      TxType
+  amount    Int // Credits, +/-
+  balance   Int
+  reference String?
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model GiftItem {
+  id       String  @id @default(cuid())
+  slug     String  @unique
+  name     String
+  emoji    String
+  credits  Int
+  position Int     @default(0)
+  active   Boolean @default(true)
+
+  gifts Gift[]
+}
+
+model Gift {
+  id         String   @id @default(cuid())
+  itemId     String
+  item       GiftItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  senderId   String
+  sender     User     @relation("GiftSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("GiftReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  profileId  String?
+  profile    Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  message    String?
+  credits    Int
+  createdAt  DateTime @default(now())
+
+  @@index([receiverId, createdAt])
+}
+
+// ── Verifizierung / Moderation ───────────────────────────────────────────────
+
+model Verification {
+  id        String  @id @default(cuid())
+  profileId String  @unique
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  status      VerificationStatus @default(NOT_STARTED)
+  level       VerificationLevel  @default(NONE)
+  idFrontKey  String?
+  idBackKey   String?
+  selfieKey   String?
+  videoKey    String?
+  challenge   String?
+  legalName   String?
+  birthDate   DateTime?
+  documentNo  String?
+  note        String?
+  reviewerId  String?
+  submittedAt DateTime?
+  reviewedAt  DateTime?
+  expiresAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/**
+ * Prüfantrag eines Hauses.
+ * Bewusst getrennt von `Verification` (Personen): Häuser weisen ihre
+ * Firmierung und, wo der Kanton das verlangt, ihre Bewilligung nach — nicht
+ * ihre Identität als Privatperson.
+ */
+model AgencyVerification {
+  id       String @id @default(cuid())
+  agencyId String @unique
+  agency   Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  status VerificationStatus @default(NOT_STARTED)
+
+  legalName   String? // Firmierung laut Handelsregister
+  uid         String? // CHE-Nummer
+  contactName String? // verantwortliche Person
+  contactRole String?
+
+  registryKey String? // Handelsregisterauszug / Gewerbenachweis
+  permitKey   String? // kantonale Bewilligung, sofern erforderlich
+  idKey       String? // Ausweis der verantwortlichen Person
+
+  note          String?
+  reviewerId    String?
+  submittedById String?
+  submittedAt   DateTime?
+  reviewedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  reporterId  String?
+  reporter    User?        @relation("Reporter", fields: [reporterId], references: [id], onDelete: SetNull)
+  targetType  String // PROFILE | REVIEW | MESSAGE | POST | USER
+  targetId    String
+  reason      ReportReason
+  details     String?      @db.Text
+  status      ReportStatus @default(OPEN)
+  handledById String?
+  resolution  String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String?
+  entityId  String?
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+}
+
+// ── Sonstiges ────────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String?
+  href      String?
+  imageUrl  String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt, createdAt])
+}
+
+model SavedSearch {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  query     Json
+  alertMail Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  excerpt     String?
+  body        String    @db.Text
+  coverUrl    String?
+  category    String    @default("magazin")
+  tags        String[]
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  authorName  String    @default("Redaktion")
+  readMinutes Int       @default(4)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([published, publishedAt])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  confirmed Boolean  @default(false)
+  token     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key   String @id
+  value Json
+}
