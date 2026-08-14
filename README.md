@@ -299,6 +299,17 @@ Unternehmenssitz anpassen.**
 
 ---
 
+## Node-Version
+
+Next 16 verlangt Node **≥ 20.9**. Festgelegt ist die Version an zwei Stellen:
+
+- `.nvmrc` → `22` (Nixpacks auf Railway und `nvm use` lokal lesen das)
+- `package.json#engines.node` → `>=20.9.0`
+
+Baut Railway trotzdem mit Node 18, in den Service-Variablen `NIXPACKS_NODE_VERSION=22` setzen.
+
+---
+
 ## Nützliche Befehle
 
 ```bash
