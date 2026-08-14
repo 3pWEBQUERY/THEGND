@@ -1,9 +1,38 @@
+/**
+ * Öffentliche Adresse der Anwendung.
+ *
+ * Der erste brauchbare Wert gewinnt: eigene Angabe, sonst die Adresse, die
+ * die Plattform vergibt, sonst der Entwicklungsserver. Unbrauchbare Werte —
+ * etwa ein blosses „https://“, wenn eine Variable ins Leere zeigt — werden
+ * verworfen: `new URL()` würde daran scheitern und den ganzen Build kippen.
+ */
+function appAdresse() {
+  const kandidaten = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.RAILWAY_PUBLIC_DOMAIN && `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`,
+    "http://localhost:3000",
+  ];
+
+  for (const kandidat of kandidaten) {
+    const wert = kandidat?.trim();
+    if (!wert) continue;
+    try {
+      const url = new URL(wert);
+      if (url.hostname) return url.origin;
+    } catch {
+      // nächster Kandidat
+    }
+  }
+
+  return "http://localhost:3000";
+}
+
 export const SITE = {
   name: process.env.NEXT_PUBLIC_SITE_NAME ?? "THEGND",
   tagline: "Das Premium-Verzeichnis für Escorts, Agenturen & Clubs",
   description:
     "Verifizierte Escort-Profile, echte Bewertungen, direkte Kontaktaufnahme. Diskret, sicher und ohne Umwege — in der ganzen Schweiz.",
-  url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+  url: appAdresse(),
   email: "support@thegnd.net",
 } as const;
 
