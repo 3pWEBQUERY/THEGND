@@ -1,0 +1,9 @@
+# Bauplan für Railway (Nixpacks).
+#
+# Ohne Angabe baut Nixpacks mit Node 18 — Next 16 verlangt mindestens 20.9
+# und bricht sonst nach `prisma generate` ab. Die Version steht bewusst an
+# drei Stellen, weil Nixpacks je nach Version unterschiedliche liest:
+# hier, in `.nvmrc` und in `package.json#engines.node`.
+
+[variables]
+NIXPACKS_NODE_VERSION = "22"
