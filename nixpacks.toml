@@ -7,3 +7,8 @@
 
 [variables]
 NIXPACKS_NODE_VERSION = "22"
+
+# Railway installiert sonst nur die Laufzeit-Abhängigkeiten. Der Build
+# braucht aber Tailwind, TypeScript und die Prisma-CLI — die stehen in
+# devDependencies, und ohne sie bricht `next build` beim Stylesheet ab.
+NPM_CONFIG_PRODUCTION = "false"
